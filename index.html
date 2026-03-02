@@ -95,92 +95,102 @@ const HIGHLIGHTS=["#fef08a","#bbf7d0","#bfdbfe","#fecaca","#e9d5ff","#fed7aa"];
 function RTE({value,onChange,placeholder,minH=120}){
   const ref=useRef(null);
   const skip=useRef(false);
+  const fireRef=useRef(null);
+  fireRef.current=()=>{skip.current=true;onChange(ref.current.innerHTML);};
+  const fire=()=>fireRef.current();
 
-  const fire=useCallback(()=>{skip.current=true;onChange(ref.current.innerHTML);},[onChange]);
-
-  // Attach checkbox + delete + keydown listeners to all cl-items
-  const bind=useCallback(()=>{
-    if(!ref.current)return;
-    ref.current.querySelectorAll(".cl-item").forEach(item=>{
-      const cb=item.querySelector("input[type=checkbox]");
-      const del=item.querySelector(".cl-del");
-      // find the text span (may or may not have cl-text class in old saved content)
-      let sp=item.querySelector(".cl-text");
-      if(!sp){sp=item.querySelector("span:not(.cl-del)");if(sp)sp.className="cl-text";sp?.setAttribute("contenteditable","true");}
-      if(cb&&!cb._b){cb._b=true;cb.addEventListener("change",()=>{item.classList.toggle("done",cb.checked);fire();});}
-      if(del&&!del._b){del._b=true;del.addEventListener("mousedown",e=>{e.preventDefault();item.remove();fire();});}
-      if(sp&&!sp._kb){sp._kb=true;sp.addEventListener("keydown",e=>{
-        if(e.key==="Backspace"){
-          const txt=sp.innerText.replace(/\u00a0/g,"").trim();
-          if(txt===""||txt==="\n"){e.preventDefault();const prev=item.previousElementSibling;item.remove();if(prev){const r=document.createRange(),s=window.getSelection();r.selectNodeContents(prev);r.collapse(false);s.removeAllRanges();s.addRange(r);}fire();}
-        }
-        if(e.key==="Enter"){e.preventDefault();const next=makeClItem();item.after(next);focusSpan(next);fire();}
-      });}
-    });
-  },[fire]);
-
+  // Load HTML into editor
   useEffect(()=>{
-    if(ref.current&&!skip.current){ref.current.innerHTML=value||"";bind();}
-    skip.current=false;
+    if(!ref.current||skip.current)return;
+    ref.current.innerHTML=value||"";
+    // Fix any old cl-items missing cl-text class
+    ref.current.querySelectorAll(".cl-item").forEach(item=>{
+      const sp=item.querySelector("span:not(.cl-del)");
+      if(sp&&!sp.classList.contains("cl-text")){sp.className="cl-text";sp.setAttribute("contenteditable","true");}
+      const cb=item.querySelector("input[type=checkbox]");
+      if(cb)item.classList.toggle("done",cb.checked);
+    });
   },[value]);
+  useEffect(()=>{skip.current=false;});
 
   const exec=(cmd,val=null)=>{document.execCommand(cmd,false,val);ref.current?.focus();};
 
-  // Find ancestor cl-item of current selection
-  const getClItem=()=>{
-    const sel=window.getSelection();
-    if(!sel||!sel.rangeCount)return null;
-    let node=sel.getRangeAt(0).startContainer;
-    while(node&&node!==ref.current){if(node.classList?.contains("cl-item"))return node;node=node.parentElement;}
+  const getClItem=(node)=>{
+    let n=node||window.getSelection()?.getRangeAt(0)?.startContainer;
+    while(n&&n!==ref.current){if(n.classList?.contains("cl-item"))return n;n=n.parentElement;}
     return null;
   };
 
-  const focusSpan=(item,atEnd=true)=>{
-    const sp=item?.querySelector(".cl-text");
-    if(!sp)return;
-    sp.focus();
-    const r=document.createRange(),s=window.getSelection();
-    r.selectNodeContents(sp);
-    r.collapse(!atEnd);
-    s.removeAllRanges();s.addRange(r);
+  const focusEnd=(item)=>{
+    const sp=item?.querySelector(".cl-text");if(!sp)return;
+    sp.focus();const r=document.createRange(),s=window.getSelection();
+    r.selectNodeContents(sp);r.collapse(false);s.removeAllRanges();s.addRange(r);
   };
 
   const makeClItem=()=>{
     const item=document.createElement("div");item.className="cl-item";
     const cb=document.createElement("input");cb.type="checkbox";
-    cb.addEventListener("change",()=>{item.classList.toggle("done",cb.checked);fire();});
-    const span=document.createElement("span");span.className="cl-text";span.contentEditable="true";span.innerHTML="<br>";
-    const del=document.createElement("button");del.className="cl-del";del.innerHTML="✕";del.title="Delete row";
-    del.addEventListener("mousedown",e=>{e.preventDefault();item.remove();fire();});
-    item.appendChild(cb);item.appendChild(span);item.appendChild(del);
+    const sp=document.createElement("span");sp.className="cl-text";sp.contentEditable="true";sp.innerHTML="<br>";
+    const del=document.createElement("button");del.className="cl-del";del.textContent="✕";del.title="Delete";
+    item.append(cb,sp,del);
     return item;
   };
+
+  // Single delegated event listeners on the editor div — attached once on mount
+  useEffect(()=>{
+    const el=ref.current;if(!el)return;
+
+    const onMousedown=e=>{
+      if(e.target.classList.contains("cl-del")){
+        e.preventDefault();
+        const item=getClItem(e.target);
+        if(item){const prev=item.previousElementSibling;item.remove();
+          if(prev){const r=document.createRange(),s=window.getSelection();r.selectNodeContents(prev);r.collapse(false);s.removeAllRanges();s.addRange(r);}
+          fire();}
+      }
+    };
+
+    const onChange_=e=>{
+      if(e.target.type==="checkbox"){
+        const item=getClItem(e.target);
+        if(item)item.classList.toggle("done",e.target.checked);
+        fire();
+      }
+    };
+
+    const onKeydown=e=>{
+      const item=getClItem();if(!item)return;
+      const sp=item.querySelector(".cl-text");
+      const empty=!sp||sp.innerText.replace(/[\u00a0\n]/g,"").trim()==="";
+
+      if(e.key==="Backspace"&&empty){
+        e.preventDefault();
+        const prev=item.previousElementSibling;item.remove();
+        if(prev){const r=document.createRange(),s=window.getSelection();r.selectNodeContents(prev);r.collapse(false);s.removeAllRanges();s.addRange(r);}
+        fire();
+      } else if(e.key==="Enter"){
+        e.preventDefault();
+        const next=makeClItem();item.after(next);focusEnd(next);fire();
+      }
+    };
+
+    el.addEventListener("mousedown",onMousedown);
+    el.addEventListener("change",onChange_);
+    el.addEventListener("keydown",onKeydown);
+    return()=>{el.removeEventListener("mousedown",onMousedown);el.removeEventListener("change",onChange_);el.removeEventListener("keydown",onKeydown);};
+  },[]);
 
   const addChecklist=()=>{
     const item=makeClItem();
     const cur=getClItem();
     if(cur)cur.after(item);
     else{
-      // insert at cursor position
       const sel=window.getSelection();
-      if(sel&&sel.rangeCount){const r=sel.getRangeAt(0);r.collapse(false);r.insertNode(item);r.setStartAfter(item);sel.removeAllRanges();sel.addRange(r);}
+      if(sel?.rangeCount){const r=sel.getRangeAt(0);r.collapse(false);r.insertNode(item);r.setStartAfter(item);sel.removeAllRanges();sel.addRange(r);}
       else ref.current.appendChild(item);
     }
-    focusSpan(item);
-    fire();
+    focusEnd(item);fire();
   };
-
-  const handleKeyDown=e=>{
-    // Only handle special cases for cl-items not already handled by span listener
-    const item=getClItem();
-    if(!item)return;
-    const span=item.querySelector(".cl-text");
-    const isEmpty=!span||span.innerText.replace(/\u00a0/g,"").trim()==="";
-    if(e.key==="Backspace"&&isEmpty){e.preventDefault();const prev=item.previousElementSibling;item.remove();if(prev){const r=document.createRange(),s=window.getSelection();r.selectNodeContents(prev);r.collapse(false);s.removeAllRanges();s.addRange(r);}fire();}
-    if(e.key==="Enter"&&item){e.preventDefault();const next=makeClItem();item.after(next);focusSpan(next);fire();}
-  };
-
-  const handleInput=()=>{bind();fire();};
 
   const T=({cmd,val,title,ch})=><button title={title} onMouseDown={e=>{e.preventDefault();exec(cmd,val);}}>{ch}</button>;
   return(
@@ -209,8 +219,7 @@ function RTE({value,onChange,placeholder,minH=120}){
         <T cmd="removeFormat"  title="Clear formatting" ch="✕"/>
       </div>
       <div ref={ref} className="rte-body" contentEditable suppressContentEditableWarning
-        onInput={handleInput} onKeyDown={handleKeyDown}
-        style={{minHeight:minH}} data-ph={placeholder}/>
+        onInput={fire} style={{minHeight:minH}} data-ph={placeholder}/>
     </div>
   );
 }
@@ -291,6 +300,7 @@ function App(){
   const [meeting,setMeeting]=useState(()=>LS.get("phd_meeting",{myTurnFriday:false}));
   const [protocols,setProtocols]=useState(()=>LS.get("phd_protocols",[]));
   const [libNotes,setLibNotes]=useState(()=>LS.get("phd_lib",[]));
+  const [done,setDone]=useState(()=>LS.get("phd_done",{}));
   const [modal,setModal]=useState(null);
   const [nc,setNc]=useState({name:"",passage:0,passageDate:""});
   const [no,setNo]=useState({name:"",type:"normal",format:"gel",seedDate:""});
@@ -309,6 +319,9 @@ function App(){
   useEffect(()=>LS.set("phd_meeting",meeting),[meeting]);
   useEffect(()=>LS.set("phd_protocols",protocols),[protocols]);
   useEffect(()=>LS.set("phd_lib",libNotes),[libNotes]);
+  useEffect(()=>LS.set("phd_done",done),[done]);
+
+  const toggleDone=(key)=>setDone(d=>{const n={...d};n[key]?delete n[key]:n[key]=true;return n;});
 
   const navDay=n=>setDate(addDays(date,n));
   const dow=parse(date).getDay();
@@ -380,11 +393,21 @@ function App(){
             <div className="card">
               <div style={{fontWeight:700,fontSize:15,marginBottom:12}}>🔬 Lab Tasks</div>
               {labToday.length===0?<div style={{color:"#94a3b8",textAlign:"center",padding:"14px 0",fontSize:14}}>No lab tasks today 🎉</div>
-                :labToday.map((t,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:7,borderRadius:9,background:t.urgent?"#fff1f2":"#f8faff",border:`1px solid ${t.urgent?"#fecaca":"#e0e7ff"}`}}>
-                  <span className="tag" style={{background:t.cat==="cell"?"#8b5cf6":"#0891b2"}}>{t.cat==="cell"?"Cell":"Organoid"}</span>
-                  <div style={{flex:1}}><div style={{fontWeight:600,fontSize:14,color:t.urgent?"#dc2626":"#1e293b"}}>{t.name}</div><div style={{fontSize:12,color:"#64748b"}}>{t.detail}</div></div>
-                  {t.urgent&&<span>⚠️</span>}
-                </div>)}
+                :labToday.map((t,i)=>{
+                  const k=`lab_${date}_${i}`;const isDone=!!done[k];
+                  return<div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:7,borderRadius:9,
+                    background:isDone?"#f0fdf4":t.urgent?"#fff1f2":"#f8faff",
+                    border:`1px solid ${isDone?"#bbf7d0":t.urgent?"#fecaca":"#e0e7ff"}`,
+                    opacity:isDone?0.7:1}}>
+                    <button onClick={()=>toggleDone(k)} title="Mark complete" style={{background:"none",border:`2px solid ${isDone?"#16a34a":"#cbd5e1"}`,borderRadius:"50%",width:22,height:22,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:isDone?"#16a34a":"transparent",fontSize:13,fontWeight:700}}>✓</button>
+                    <span className="tag" style={{background:t.cat==="cell"?"#8b5cf6":"#0891b2"}}>{t.cat==="cell"?"Cell":"Organoid"}</span>
+                    <div style={{flex:1,textDecoration:isDone?"line-through":"none"}}>
+                      <div style={{fontWeight:600,fontSize:14,color:isDone?"#94a3b8":t.urgent?"#dc2626":"#1e293b"}}>{t.name}</div>
+                      <div style={{fontSize:12,color:"#64748b"}}>{t.detail}</div>
+                    </div>
+                    {!isDone&&t.urgent&&<span>⚠️</span>}
+                  </div>;
+                })}
             </div>
 
             <div className="card">
@@ -393,20 +416,32 @@ function App(){
                 <button className="btn" style={{background:"#6366f1"}} onClick={()=>{setNt({type:"coding",title:"",time:"09:00",duration:60,detail:""});setModal("task");}}>+ Add</button>
               </div>
               {personal.length===0?<div style={{color:"#94a3b8",textAlign:"center",padding:"14px 0",fontSize:14}}>No schedule — click "+ Add"</div>
-                :personal.map((t,i)=>{const tp=TASK_TYPES.find(x=>x.id===t.type);return(
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:7,borderRadius:9,background:"#fafafa",border:"1px solid #e5e7eb"}}>
-                    <div style={{textAlign:"center",minWidth:44}}><div style={{fontSize:13,fontWeight:700}}>{t.time}</div><div style={{fontSize:11,color:"#9ca3af"}}>{t.duration}m</div></div>
-                    <span className="tag" style={{background:tp?.color||"#6b7280"}}>{tp?.label||t.type}</span>
-                    <div style={{flex:1}}><div style={{fontWeight:600,fontSize:14}}>{t.title}</div>{t.detail&&<div style={{fontSize:12,color:"#64748b"}}>{t.detail}</div>}</div>
-                    <button onClick={()=>setPtasks({...ptasks,[date]:(ptasks[date]||[]).filter((_,j)=>j!==i)})} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer",fontSize:18}}>✕</button>
-                  </div>
-                );})}
+                :personal.map((t,i)=>{
+                  const tp=TASK_TYPES.find(x=>x.id===t.type);
+                  const k=`sch_${date}_${i}`;const isDone=!!done[k];
+                  return(
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:7,borderRadius:9,
+                      background:isDone?"#f0fdf4":"#fafafa",border:`1px solid ${isDone?"#bbf7d0":"#e5e7eb"}`,opacity:isDone?0.7:1}}>
+                      <button onClick={()=>toggleDone(k)} title="Mark complete" style={{background:"none",border:`2px solid ${isDone?"#16a34a":"#cbd5e1"}`,borderRadius:"50%",width:22,height:22,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:isDone?"#16a34a":"transparent",fontSize:13,fontWeight:700}}>✓</button>
+                      <div style={{textAlign:"center",minWidth:44}}><div style={{fontSize:13,fontWeight:700}}>{t.time}</div><div style={{fontSize:11,color:"#9ca3af"}}>{t.duration}m</div></div>
+                      <span className="tag" style={{background:tp?.color||"#6b7280"}}>{tp?.label||t.type}</span>
+                      <div style={{flex:1,textDecoration:isDone?"line-through":"none"}}><div style={{fontWeight:600,fontSize:14}}>{t.title}</div>{t.detail&&<div style={{fontSize:12,color:"#64748b"}}>{t.detail}</div>}</div>
+                      <button onClick={()=>setPtasks({...ptasks,[date]:(ptasks[date]||[]).filter((_,j)=>j!==i)})} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer",fontSize:18}}>✕</button>
+                    </div>
+                  );
+                })}
             </div>
 
             <div className="card" style={{background:"#f8faff",border:"1px solid #e0e7ff"}}>
               <div style={{fontWeight:700,fontSize:14,color:"#4338ca",marginBottom:8}}>📅 Tomorrow — {addDays(date,1)}</div>
               {labTomorrow.length===0?<div style={{color:"#a5b4fc",fontSize:13}}>No lab tasks</div>
                 :labTomorrow.map((t,i)=><div key={i} style={{fontSize:13,color:"#3730a3",marginBottom:4}}>🔬 <strong>{t.name}</strong>: {t.label}</div>)}
+            </div>
+
+            <div className="card" style={{border:"1px solid #fde68a",background:"#fffbeb"}}>
+              <div style={{fontWeight:700,fontSize:15,marginBottom:4,color:"#92400e"}}>🌙 Daily Reflection</div>
+              <div style={{fontSize:12,color:"#b45309",marginBottom:10}}>What went well? What was difficult? What will you do differently tomorrow?</div>
+              <RTE value={notes[`reflect_${date}`]||""} onChange={v=>setNote(`reflect_${date}`,v)} placeholder="Today I accomplished... I struggled with... Tomorrow I will..." minH={140}/>
             </div>
           </>)}
 

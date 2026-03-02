@@ -276,7 +276,8 @@ function App(){
   const [notes,setNotes]=useState(()=>LS.get("phd_notes",{}));
   const [events,setEvents]=useState(()=>LS.get("phd_events",[]));
   const [meeting,setMeeting]=useState(()=>LS.get("phd_meeting",{myTurnFriday:false}));
-  const [protocols,setProtocols]=useState(()=>LS.get("phd_protocols",[]));
+  const [aiMeetings,  setAiMeetings]  = useState(()=>LS.get("phd_ai_meet",[]));
+  const [cardMeetings,setCardMeetings]= useState(()=>LS.get("phd_card_meet",[]));
   const [libNotes,setLibNotes]=useState(()=>LS.get("phd_lib",[]));
   const [done,setDone]=useState(()=>LS.get("phd_done",{}));
   const [modal,setModal]=useState(null);
@@ -284,6 +285,7 @@ function App(){
   const [no,setNo]=useState({name:"",type:"normal",format:"gel",seedDate:""});
   const [nt,setNt]=useState({type:"coding",title:"",time:"09:00",duration:60,detail:""});
   const [ne,setNe]=useState({cat:"poster",title:"",deadline:"",reminderDays:7,detail:""});
+  const [nm,setNm]=useState({date:today()});
   const [np,setNp]=useState({title:"",category:"",content:""});
   const [nl,setNl]=useState({title:"",tag:"",content:""});
   const [expandProt,setExpandProt]=useState(null);
@@ -424,9 +426,68 @@ function App(){
           </>)}
 
           {/* ══ AI / CARDIOID MEETING ══ */}
-          {(tab==="ai_meet"||tab==="card_meet")&&
-            <MeetingTab tabKey={tab} notes={notes} setNotes={setNotes} expandProt={expandProt} setExpandProt={setExpandProt} currentDate={date}/>
-          }
+          {(tab==="ai_meet"||tab==="card_meet")&&(()=>{
+            const isAI=tab==="ai_meet";
+            const list=isAI?aiMeetings:cardMeetings;
+            const setList=isAI?setAiMeetings:setCardMeetings;
+            const color=isAI?"#6366f1":"#0891b2";
+            const icon=isAI?"🤖":"🫀";
+            const label=isAI?"AI Direction":"Cardioid Direction";
+            const sorted=[...list].sort((a,b)=>b.date.localeCompare(a.date));
+            return(<>
+              <div className="card">
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <span className="tag" style={{background:color}}>{icon} {label}</span>
+                    <span style={{fontSize:13,color:"#64748b"}}>{list.length} record(s)</span>
+                  </div>
+                  <button className="btn" style={{background:color,fontSize:12,padding:"5px 12px"}}
+                    onClick={()=>{setNm({date:today()});setModal(isAI?"meet_ai":"meet_card");}}>+ Add Entry</button>
+                </div>
+              </div>
+              {sorted.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:40}}>No meeting records yet — click "+ Add Entry"</div>}
+              {sorted.map((m,i)=>{
+                const isOpen=expandProt===m.id;
+                return(
+                  <div key={m.id} className="card" style={{padding:0,overflow:"hidden"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"11px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}}
+                      onClick={()=>setExpandProt(isOpen?null:m.id)}>
+                      <div>
+                        <span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{m.date}</span>
+                        <span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{new Date(m.date+"T12:00:00").toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span>
+                      </div>
+                      <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                        <button className="btn" style={{background:"#ef4444",padding:"3px 10px",fontSize:12}}
+                          onClick={ev=>{ev.stopPropagation();setList(list.filter(x=>x.id!==m.id));}}>Delete</button>
+                        <span style={{color:color,fontWeight:700}}>{isOpen?"▲":"▼"}</span>
+                      </div>
+                    </div>
+                    {isOpen&&<div style={{padding:"14px"}}>
+                      <div style={{marginBottom:14}}>
+                        <div style={{fontWeight:700,fontSize:13,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                          <span style={{background:"#e0e7ff",color:"#4338ca",borderRadius:6,padding:"2px 9px",fontSize:12}}>📊 My Report</span>
+                          <span style={{fontSize:11,color:"#94a3b8"}}>Progress · Results · Questions</span>
+                        </div>
+                        <RTE value={m.report||""} onChange={v=>setList(list.map(x=>x.id===m.id?{...x,report:v}:x))} placeholder="What did I present? Key results, blockers, questions I raised..." minH={160}/>
+                      </div>
+                      <div style={{display:"flex",alignItems:"center",gap:10,margin:"4px 0 14px"}}>
+                        <div style={{flex:1,height:1,background:"#e2e8f0"}}/>
+                        <span style={{fontSize:11,color:"#94a3b8",fontWeight:600}}>SUPERVISOR FEEDBACK</span>
+                        <div style={{flex:1,height:1,background:"#e2e8f0"}}/>
+                      </div>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:13,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                          <span style={{background:"#dcfce7",color:"#15803d",borderRadius:6,padding:"2px 9px",fontSize:12}}>💬 Supervisor Feedback</span>
+                          <span style={{fontSize:11,color:"#94a3b8"}}>Comments · Next steps · Action items</span>
+                        </div>
+                        <RTE value={m.feedback||""} onChange={v=>setList(list.map(x=>x.id===m.id?{...x,feedback:v}:x))} placeholder="What feedback did I receive? What are the next steps suggested?..." minH={140}/>
+                      </div>
+                    </div>}
+                  </div>
+                );
+              })}
+            </>);
+          })()}
 
           {/* ══ FRIDAY PRESENTATION ══ */}
           {tab==="fri_meet"&&<div className="card">
@@ -718,7 +779,17 @@ function App(){
         <button className="btn" style={{background:"#1e3a5f",width:"100%",padding:10}} onClick={()=>{if(!ne.title||!ne.deadline)return;setEvents([...events,{...ne,id:Date.now(),archived:false}]);setModal(null);}}>Add</button>
       </Modal>}
 
-      {modal==="prot"&&<Modal title="➕ Add Protocol" onClose={()=>setModal(null)}>
+      {(modal==="meet_ai"||modal==="meet_card")&&<Modal title="➕ Add Meeting Record" onClose={()=>setModal(null)}>
+        <label className="lbl">Meeting date</label>
+        <input className="inp" type="date" value={nm.date} onChange={e=>setNm({date:e.target.value})}/>
+        <button className="btn" style={{background:modal==="meet_ai"?"#6366f1":"#0891b2",width:"100%",padding:10}} onClick={()=>{
+          if(!nm.date)return;
+          const entry={id:Date.now(),date:nm.date,report:"",feedback:""};
+          if(modal==="meet_ai")setAiMeetings([...aiMeetings,entry]);
+          else setCardMeetings([...cardMeetings,entry]);
+          setModal(null);
+        }}>Add</button>
+      </Modal>}
         <label className="lbl">Protocol name</label><input className="inp" value={np.title} onChange={e=>setNp({...np,title:e.target.value})} placeholder="e.g. iPSC Cardioid Differentiation"/>
         <label className="lbl">Category (optional)</label><input className="inp" value={np.category} onChange={e=>setNp({...np,category:e.target.value})} placeholder="e.g. Wet Lab / Imaging / Staining"/>
         <button className="btn" style={{background:"#1e3a5f",width:"100%",padding:10}} onClick={()=>{if(!np.title)return;setProtocols([...protocols,{...np,id:Date.now(),content:""}]);setModal(null);}}>Add Protocol</button>

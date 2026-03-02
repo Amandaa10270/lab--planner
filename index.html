@@ -14,62 +14,58 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;}
 input,select,textarea,button{font-family:inherit;}
 ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
 #app{display:flex;height:100vh;overflow:hidden;}
-#sidebar{width:220px;min-width:220px;background:linear-gradient(180deg,#1e3a5f,#1e2d4a);display:flex;flex-direction:column;overflow-y:auto;transition:width .2s;}
-#sidebar.col{width:52px;min-width:52px;}
-#sidebar.col .hidelabel{display:none;}
+#sb{width:220px;min-width:220px;background:linear-gradient(180deg,#1e3a5f,#1e2d4a);display:flex;flex-direction:column;overflow-y:auto;transition:width .2s;}
+#sb.col{width:52px;min-width:52px;}
+#sb.col .hl{display:none;}
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-#topbar{flex-shrink:0;background:white;border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-#content{flex:1;overflow-y:auto;padding:14px 18px 32px;}
-.sb-logo{padding:16px 14px 10px;color:white;}
-.sb-logo .t{font-weight:800;font-size:14px;}
-.sb-logo .s{font-size:11px;opacity:.5;margin-top:2px;}
-.sb-sec{padding:6px 10px 2px;font-size:10px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.07em;}
-.sb-item{display:flex;align-items:center;gap:9px;padding:8px 12px;cursor:pointer;color:rgba(255,255,255,.6);border-radius:8px;margin:1px 5px;transition:all .15s;white-space:nowrap;}
-.sb-item:hover{background:rgba(255,255,255,.08);color:white;}
-.sb-item.act{background:rgba(99,102,241,.35);color:white;}
-.sb-item .ico{font-size:15px;flex-shrink:0;width:20px;text-align:center;}
-.sb-item .lbl{font-size:13px;font-weight:500;}
-.sb-div{height:1px;background:rgba(255,255,255,.08);margin:5px 12px;}
-.sb-tog{margin:auto 8px 10px;padding:7px;background:rgba(255,255,255,.07);border:none;border-radius:8px;color:rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;}
-.sb-tog:hover{background:rgba(255,255,255,.12);color:white;}
+#top{flex-shrink:0;background:white;border-bottom:1px solid #e2e8f0;padding:9px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+#body{flex:1;overflow-y:auto;padding:14px 18px 32px;}
+.sbl{padding:15px 13px 9px;color:white;}
+.sbl .t{font-weight:800;font-size:14px;}
+.sbl .s{font-size:11px;opacity:.45;margin-top:1px;}
+.sbs{padding:5px 10px 2px;font-size:10px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.07em;}
+.sbi{display:flex;align-items:center;gap:9px;padding:8px 12px;cursor:pointer;color:rgba(255,255,255,.6);border-radius:8px;margin:1px 5px;white-space:nowrap;}
+.sbi:hover{background:rgba(255,255,255,.08);color:white;}
+.sbi.act{background:rgba(99,102,241,.35);color:white;}
+.sbi .ic{font-size:15px;flex-shrink:0;width:20px;text-align:center;}
+.sbi .lb{font-size:13px;font-weight:500;}
+.sdv{height:1px;background:rgba(255,255,255,.08);margin:5px 12px;}
+.stg{margin:auto 8px 10px;padding:7px;background:rgba(255,255,255,.07);border:none;border-radius:8px;color:rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.stg:hover{background:rgba(255,255,255,.12);color:white;}
 .card{background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:10px;}
 .btn{border:none;border-radius:8px;padding:7px 13px;cursor:pointer;font-weight:600;font-size:13px;color:white;}
 .inp{display:block;width:100%;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:14px;margin-bottom:10px;outline:none;}
 .lbl{display:block;margin-bottom:4px;font-weight:600;font-size:12px;color:#64748b;}
 .tag{border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700;display:inline-block;color:white;}
 .pill{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;font-size:11px;color:#475569;}
-/* RTE */
 .rte-wrap{border:1px solid #e2e8f0;border-radius:9px;overflow:hidden;}
 .rte-bar{display:flex;flex-wrap:wrap;gap:2px;padding:5px 7px;background:#f8fafc;border-bottom:1px solid #e2e8f0;}
 .rte-bar button{background:none;border:none;border-radius:5px;padding:3px 6px;cursor:pointer;font-size:12px;color:#475569;line-height:1;font-family:inherit;}
 .rte-bar button:hover{background:#e2e8f0;}
 .rte-bar .sep{width:1px;background:#e2e8f0;margin:2px 3px;align-self:stretch;}
-.rte-body{min-height:100px;padding:10px 12px;outline:none;font-size:14px;line-height:1.75;background:white;overflow-x:hidden;overflow-y:auto;word-break:break-word;}
+.rte-body{min-height:100px;padding:10px 12px;outline:none;font-size:14px;line-height:1.75;background:white;overflow-x:hidden;word-break:break-word;}
 .rte-body ul{padding-left:20px;}.rte-body ol{padding-left:20px;}
 .rte-body:empty:before{content:attr(data-ph);color:#94a3b8;pointer-events:none;display:block;}
-.cl-row{display:flex;align-items:baseline;gap:6px;margin:2px 0;padding:1px 0;}
+.cl-row{display:flex;align-items:baseline;gap:6px;margin:2px 0;}
 .cl-box{display:inline-block;width:16px;height:16px;border:2px solid #94a3b8;border-radius:4px;flex-shrink:0;cursor:pointer;user-select:none;vertical-align:middle;text-align:center;font-size:11px;line-height:12px;color:white;background:white;position:relative;top:-1px;}
 .cl-box.chk{background:#6366f1;border-color:#6366f1;}
 .cl-box.chk::after{content:'✓';}
 .cl-txt{flex:1;outline:none;min-width:4px;display:inline;}
 .cl-row.done .cl-txt{text-decoration:line-through;color:#94a3b8;}
-@media(max-width:600px){#sidebar{width:50px;min-width:50px;}#sidebar .hidelabel{display:none;}#content{padding:10px 10px 28px;}}
+@media(max-width:600px){#sb{width:50px;min-width:50px;}#sb .hl{display:none;}#body{padding:10px 10px 28px;}}
 </style>
 </head>
 <body><div id="root"></div>
 <script type="text/babel">
 const {useState,useEffect,useRef}=React;
-
-/* ── helpers ── */
 const fmt=d=>d.toISOString().split("T")[0];
 const parseD=s=>new Date(s+"T12:00:00");
 const addDays=(s,n)=>{const d=parseD(s);d.setDate(d.getDate()+n);return fmt(d);};
 const diffD=(a,b)=>Math.round((parseD(b)-parseD(a))/86400000);
 const todayStr=()=>fmt(new Date());
-const getMon=s=>{const d=parseD(s),day=d.getDay(),delta=day===0?-6:1-day;d.setDate(d.getDate()+delta);return fmt(d);};
+const getMon=s=>{const d=parseD(s),dy=d.getDay(),dl=dy===0?-6:1-dy;d.setDate(d.getDate()+dl);return fmt(d);};
 const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}};
 
-/* ── protocols ── */
 const getCellMedia=d=>({0:"Ri + E8",1:"E8",2:"E8F",3:"E8F"}[d]??null);
 const getNormal=d=>{const m={"-3":"Seeding","-2":"E8F","-1":"E8F","0":"CHIR","1":"-I","2":"IWP4","4":"-I"};if(m[d]!==undefined)return m[d];if(d>=6&&d<=21&&(d-6)%2===0)return"+C (media change)";return null;};
 const getVasc=d=>{const m={"-3":"Seeding","-2":"E8F","-1":"E8F","0":"CHIR","1":"-I+BWP4+FGF2","2":"IWP4+BWP4+FGF2","4":"-I+BWP4+FGF2","5":"FGF2+VEGF++C"};if(m[d]!==undefined)return m[d];if(d>=7&&d<=21&&(d-7)%2===0)return"+C+FGF2+VEGF+A8301+SB431542";return null;};
@@ -77,29 +73,22 @@ const TTYPES=[{id:"coding",label:"💻 Coding",color:"#6366f1"},{id:"ta",label:"
 const ECATS=[{id:"conference",label:"🏛 Conference",color:"#6366f1"},{id:"poster",label:"🖼 Poster",color:"#f59e0b"},{id:"paper",label:"📄 Paper",color:"#10b981"},{id:"admin",label:"📋 Admin",color:"#3b82f6"},{id:"other",label:"📌 Other",color:"#8b5cf6"}];
 const HLS=["#fef08a","#bbf7d0","#bfdbfe","#fecaca","#e9d5ff","#fed7aa"];
 
-/* ── RTE ── */
+/* RTE */
 function RTE({value,onChange,placeholder,minH=120}){
   const ref=useRef(null);
   const skip=useRef(false);
-  const onChangRef=useRef(onChange);
-  onChangRef.current=onChange;
-  const fire=()=>{skip.current=true;onChangRef.current(ref.current.innerHTML);};
-
-  useEffect(()=>{
-    if(!ref.current||skip.current)return;
-    ref.current.innerHTML=value||"";
-  },[value]);
+  const cbRef=useRef(onChange);
+  cbRef.current=onChange;
+  const fire=()=>{skip.current=true;cbRef.current(ref.current.innerHTML);};
+  useEffect(()=>{if(!ref.current||skip.current)return;ref.current.innerHTML=value||"";},[value]);
   useEffect(()=>{skip.current=false;});
-
   const exec=(cmd,v=null)=>{document.execCommand(cmd,false,v);ref.current?.focus();};
-
   const makeRow=()=>{
     const row=document.createElement("div");row.className="cl-row";
     const box=document.createElement("span");box.className="cl-box";box.contentEditable="false";
     const txt=document.createElement("span");txt.className="cl-txt";txt.contentEditable="true";txt.innerHTML="<br>";
     row.append(box,txt);return row;
   };
-
   useEffect(()=>{
     const el=ref.current;if(!el)return;
     const onMD=e=>{
@@ -119,26 +108,21 @@ function RTE({value,onChange,placeholder,minH=120}){
       const txt=row.querySelector(".cl-txt");
       const empty=!txt||txt.innerText.replace(/[\u00a0\n\r]/g,"").trim()==="";
       if(e.key==="Backspace"&&empty){
-        e.preventDefault();
-        const prev=row.previousElementSibling;row.remove();
+        e.preventDefault();const prev=row.previousElementSibling;row.remove();
         if(prev){const r=document.createRange(),s=window.getSelection();r.selectNodeContents(prev);r.collapse(false);s.removeAllRanges();s.addRange(r);}
         fire();
       }else if(e.key==="Enter"){
-        e.preventDefault();
-        const next=makeRow();row.after(next);
+        e.preventDefault();const next=makeRow();row.after(next);
         const t=next.querySelector(".cl-txt");t.focus();
         const r=document.createRange(),s=window.getSelection();r.selectNodeContents(t);r.collapse(false);s.removeAllRanges();s.addRange(r);
         fire();
       }
     };
-    el.addEventListener("mousedown",onMD);
-    el.addEventListener("keydown",onKD);
+    el.addEventListener("mousedown",onMD);el.addEventListener("keydown",onKD);
     return()=>{el.removeEventListener("mousedown",onMD);el.removeEventListener("keydown",onKD);};
   },[]);
-
   const addCL=()=>{
-    const row=makeRow();
-    const sel=window.getSelection();
+    const row=makeRow();const sel=window.getSelection();
     let cur=null,n=sel?.getRangeAt(0)?.startContainer;
     while(n&&n!==ref.current){if(n.classList?.contains("cl-row")){cur=n;break;}n=n.parentElement;}
     if(cur)cur.after(row);
@@ -148,29 +132,20 @@ function RTE({value,onChange,placeholder,minH=120}){
     const r=document.createRange(),s=window.getSelection();r.selectNodeContents(t);r.collapse(false);s.removeAllRanges();s.addRange(r);
     fire();
   };
-
   const T=({cmd,v,title,ch})=><button title={title} onMouseDown={e=>{e.preventDefault();exec(cmd,v??null);}}>{ch}</button>;
   return(
     <div className="rte-wrap">
       <div className="rte-bar">
-        <T cmd="bold" title="Bold" ch={<b>B</b>}/>
-        <T cmd="italic" title="Italic" ch={<i>I</i>}/>
-        <T cmd="underline" title="Underline" ch={<u>U</u>}/>
-        <T cmd="strikeThrough" title="Strike" ch={<s>S</s>}/>
-        <T cmd="superscript" title="Superscript" ch="x²"/>
-        <T cmd="subscript" title="Subscript" ch="x₂"/>
+        <T cmd="bold" title="Bold" ch={<b>B</b>}/><T cmd="italic" title="Italic" ch={<i>I</i>}/><T cmd="underline" title="Underline" ch={<u>U</u>}/><T cmd="strikeThrough" title="Strike" ch={<s>S</s>}/>
+        <T cmd="superscript" title="Superscript" ch="x²"/><T cmd="subscript" title="Subscript" ch="x₂"/>
         <div className="sep"/>
         {HLS.map(c=><button key={c} onMouseDown={e=>{e.preventDefault();exec("hiliteColor",c);}} style={{background:c,border:"1px solid #e2e8f0",borderRadius:4,width:16,height:16,padding:0,cursor:"pointer"}}/>)}
         <div className="sep"/>
-        <T cmd="insertUnorderedList" title="Bullet" ch="•—"/>
-        <T cmd="insertOrderedList" title="Numbered" ch="1—"/>
+        <T cmd="insertUnorderedList" title="Bullet" ch="•—"/><T cmd="insertOrderedList" title="Numbered" ch="1—"/>
         <button title="Checklist" onMouseDown={e=>{e.preventDefault();addCL();}}>☑</button>
         <div className="sep"/>
-        <T cmd="justifyLeft" title="Left" ch="⬅"/>
-        <T cmd="justifyCenter" title="Center" ch="≡"/>
-        <T cmd="justifyRight" title="Right" ch="➡"/>
-        <T cmd="indent" title="Indent" ch="→"/>
-        <T cmd="outdent" title="Outdent" ch="←"/>
+        <T cmd="justifyLeft" title="Left" ch="⬅"/><T cmd="justifyCenter" title="Center" ch="≡"/><T cmd="justifyRight" title="Right" ch="➡"/>
+        <T cmd="indent" title="Indent" ch="→"/><T cmd="outdent" title="Outdent" ch="←"/>
         <div className="sep"/>
         <button title="Link" onMouseDown={e=>{e.preventDefault();const u=prompt("URL:","https://");if(u)exec("createLink",u);}}>🔗</button>
         <T cmd="removeFormat" title="Clear" ch="✕"/>
@@ -180,7 +155,7 @@ function RTE({value,onChange,placeholder,minH=120}){
   );
 }
 
-/* ── Modal ── */
+/* Modal */
 function Modal({title,onClose,children}){
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999}}>
@@ -195,84 +170,43 @@ function Modal({title,onClose,children}){
   );
 }
 
-/* ── Meeting Tab ── */
+/* Meeting Tab */
 function MeetingTab({dirKey,color,icon,label,notes,setNotes,curDate}){
   const [adding,setAdding]=useState(false);
   const [newDate,setNewDate]=useState(getMon(curDate));
   const [openId,setOpenId]=useState(null);
-
   const setNote=(k,v)=>setNotes(n=>({...n,[k]:v}));
-
-  const entries=Object.keys(notes)
-    .filter(k=>k.startsWith(dirKey+"_report_"))
-    .map(k=>{const d=k.replace(dirKey+"_report_","");return{date:d};})
-    .sort((a,b)=>b.date.localeCompare(a.date));
-
-  const addEntry=()=>{
-    if(!newDate)return;
-    setNote(`${dirKey}_report_${newDate}`,"");
-    setAdding(false);
-    setOpenId(newDate);
-  };
-  const delEntry=d=>{
-    setNotes(n=>{const c={...n};delete c[`${dirKey}_report_${d}`];delete c[`${dirKey}_feedback_${d}`];return c;});
-    if(openId===d)setOpenId(null);
-  };
-
+  const entries=Object.keys(notes).filter(k=>k.startsWith(dirKey+"_report_")).map(k=>({date:k.replace(dirKey+"_report_","")})).sort((a,b)=>b.date.localeCompare(a.date));
+  const addEntry=()=>{if(!newDate)return;setNote(`${dirKey}_report_${newDate}`,"");setAdding(false);setOpenId(newDate);};
+  const delEntry=d=>{setNotes(n=>{const c={...n};delete c[`${dirKey}_report_${d}`];delete c[`${dirKey}_feedback_${d}`];return c;});if(openId===d)setOpenId(null);};
   return(<>
     <div className="card">
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span className="tag" style={{background:color}}>{icon} {label}</span>
-          <span style={{fontSize:13,color:"#94a3b8"}}>{entries.length} session(s)</span>
-        </div>
+        <div style={{display:"flex",alignItems:"center",gap:8}}><span className="tag" style={{background:color}}>{icon} {label}</span><span style={{fontSize:13,color:"#94a3b8"}}>{entries.length} session(s)</span></div>
         <button className="btn" style={{background:color,fontSize:12,padding:"5px 11px"}} onClick={()=>setAdding(!adding)}>+ Add Session</button>
       </div>
       {adding&&<div style={{marginTop:12,padding:12,background:"#f8fafc",borderRadius:9,border:"1px solid #e2e8f0"}}>
         <div className="lbl">Meeting date</div>
-        <div style={{display:"flex",gap:8}}>
-          <input className="inp" type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{marginBottom:0,flex:1}}/>
-          <button className="btn" style={{background:color}} onClick={addEntry}>Add</button>
-          <button className="btn" style={{background:"#94a3b8"}} onClick={()=>setAdding(false)}>Cancel</button>
-        </div>
+        <div style={{display:"flex",gap:8}}><input className="inp" type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{marginBottom:0,flex:1}}/><button className="btn" style={{background:color}} onClick={addEntry}>Add</button><button className="btn" style={{background:"#94a3b8"}} onClick={()=>setAdding(false)}>Cancel</button></div>
       </div>}
     </div>
-
     {entries.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No sessions yet — click "+ Add Session"</div>}
-
     {entries.map(e=>{
       const isOpen=openId===e.date;
       return(
         <div key={e.date} className="card" style={{padding:0,overflow:"hidden"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}}
-            onClick={()=>setOpenId(isOpen?null:e.date)}>
-            <div>
-              <span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.date}</span>
-              <span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{parseD(e.date).toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span>
-            </div>
-            <div style={{display:"flex",gap:6,alignItems:"center"}}>
-              <button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.date);}}>Delete</button>
-              <span style={{color:color,fontWeight:700}}>{isOpen?"▲":"▼"}</span>
-            </div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setOpenId(isOpen?null:e.date)}>
+            <div><span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.date}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{parseD(e.date).toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span></div>
+            <div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.date);}}>Delete</button><span style={{color:color,fontWeight:700}}>{isOpen?"▲":"▼"}</span></div>
           </div>
           {isOpen&&<div style={{padding:14}}>
             <div style={{marginBottom:14}}>
-              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-                <span style={{background:"#e0e7ff",color:"#4338ca",borderRadius:6,padding:"2px 9px",fontSize:12,fontWeight:700}}>📊 My Report</span>
-                <span style={{fontSize:11,color:"#94a3b8"}}>Progress · Results · Questions</span>
-              </div>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}><span style={{background:"#e0e7ff",color:"#4338ca",borderRadius:6,padding:"2px 9px",fontSize:12,fontWeight:700}}>📊 My Report</span><span style={{fontSize:11,color:"#94a3b8"}}>Progress · Results · Questions</span></div>
               <RTE value={notes[`${dirKey}_report_${e.date}`]||""} onChange={v=>setNote(`${dirKey}_report_${e.date}`,v)} placeholder="What did I present? Key results, blockers, questions..." minH={150}/>
             </div>
-            <div style={{display:"flex",alignItems:"center",gap:10,margin:"6px 0 14px"}}>
-              <div style={{flex:1,height:1,background:"#e2e8f0"}}/>
-              <span style={{fontSize:10,color:"#94a3b8",fontWeight:700,letterSpacing:".06em"}}>SUPERVISOR FEEDBACK</span>
-              <div style={{flex:1,height:1,background:"#e2e8f0"}}/>
-            </div>
+            <div style={{display:"flex",alignItems:"center",gap:10,margin:"6px 0 14px"}}><div style={{flex:1,height:1,background:"#e2e8f0"}}/><span style={{fontSize:10,color:"#94a3b8",fontWeight:700,letterSpacing:".06em"}}>SUPERVISOR FEEDBACK</span><div style={{flex:1,height:1,background:"#e2e8f0"}}/></div>
             <div>
-              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-                <span style={{background:"#dcfce7",color:"#15803d",borderRadius:6,padding:"2px 9px",fontSize:12,fontWeight:700}}>💬 Feedback</span>
-                <span style={{fontSize:11,color:"#94a3b8"}}>Comments · Next steps · Action items</span>
-              </div>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}><span style={{background:"#dcfce7",color:"#15803d",borderRadius:6,padding:"2px 9px",fontSize:12,fontWeight:700}}>💬 Feedback</span><span style={{fontSize:11,color:"#94a3b8"}}>Comments · Next steps · Action items</span></div>
               <RTE value={notes[`${dirKey}_feedback_${e.date}`]||""} onChange={v=>setNote(`${dirKey}_feedback_${e.date}`,v)} placeholder="Supervisor's comments, suggested next steps..." minH={130}/>
             </div>
           </div>}
@@ -282,80 +216,47 @@ function MeetingTab({dirKey,color,icon,label,notes,setNotes,curDate}){
   </>);
 }
 
-/* ── Friday Tab ── */
+/* Friday Tab */
 function FridayTab({notes,setNotes,meeting,setMeeting,curDate}){
   const [adding,setAdding]=useState(false);
   const [newDate,setNewDate]=useState(curDate);
   const [openId,setOpenId]=useState(null);
   const setNote=(k,v)=>setNotes(n=>({...n,[k]:v}));
-
-  const entries=Object.keys(notes)
-    .filter(k=>k.startsWith("fri_pres_"))
-    .map(k=>({date:k.replace("fri_pres_","")}))
-    .sort((a,b)=>b.date.localeCompare(a.date));
-
-  const addEntry=()=>{
-    if(!newDate)return;
-    setNote(`fri_pres_${newDate}`,"");
-    setAdding(false);setOpenId(newDate);
-  };
+  const entries=Object.keys(notes).filter(k=>k.startsWith("fri_pres_")).map(k=>({date:k.replace("fri_pres_","")})).sort((a,b)=>b.date.localeCompare(a.date));
+  const addEntry=()=>{if(!newDate)return;setNote(`fri_pres_${newDate}`,"");setAdding(false);setOpenId(newDate);};
   const delEntry=d=>{setNotes(n=>{const c={...n};delete c[`fri_pres_${d}`];return c;});if(openId===d)setOpenId(null);};
-
   return(<>
     <div className="card">
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span style={{fontWeight:700,fontSize:15}}>🎤 Friday Presentations</span>
-        </div>
+        <span style={{fontWeight:700,fontSize:15}}>🎤 Friday Presentations</span>
         <button className="btn" style={{background:"#9333ea",fontSize:12,padding:"5px 11px"}} onClick={()=>setAdding(!adding)}>+ Add Session</button>
       </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:12,background:meeting.myTurn?"#fff7ed":"#f0fdf4",borderRadius:9,padding:"10px 13px",border:`1px solid ${meeting.myTurn?"#fed7aa":"#bbf7d0"}`}}>
-        <div>
-          <div style={{fontWeight:600,fontSize:14,color:meeting.myTurn?"#c2410c":"#15803d"}}>Is it your turn this Friday?</div>
-          <div style={{fontSize:12,color:"#64748b",marginTop:2}}>Toggle on when it's your week to present</div>
-        </div>
-        <button className="btn" style={{background:meeting.myTurn?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurn:!meeting.myTurn})}>
-          {meeting.myTurn?"✓ Done":"My Turn"}
-        </button>
+        <div><div style={{fontWeight:600,fontSize:14,color:meeting.myTurn?"#c2410c":"#15803d"}}>Is it your turn this Friday?</div><div style={{fontSize:12,color:"#64748b",marginTop:2}}>Toggle on when it's your week</div></div>
+        <button className="btn" style={{background:meeting.myTurn?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurn:!meeting.myTurn})}>{meeting.myTurn?"✓ Done":"My Turn"}</button>
       </div>
       {adding&&<div style={{marginTop:12,padding:12,background:"#f8fafc",borderRadius:9,border:"1px solid #e2e8f0"}}>
         <div className="lbl">Presentation date</div>
-        <div style={{display:"flex",gap:8}}>
-          <input className="inp" type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{marginBottom:0,flex:1}}/>
-          <button className="btn" style={{background:"#9333ea"}} onClick={addEntry}>Add</button>
-          <button className="btn" style={{background:"#94a3b8"}} onClick={()=>setAdding(false)}>Cancel</button>
-        </div>
+        <div style={{display:"flex",gap:8}}><input className="inp" type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{marginBottom:0,flex:1}}/><button className="btn" style={{background:"#9333ea"}} onClick={addEntry}>Add</button><button className="btn" style={{background:"#94a3b8"}} onClick={()=>setAdding(false)}>Cancel</button></div>
       </div>}
     </div>
-
     {entries.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No presentation records yet</div>}
-
     {entries.map(e=>{
       const isOpen=openId===e.date;
       return(
         <div key={e.date} className="card" style={{padding:0,overflow:"hidden"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}}
-            onClick={()=>setOpenId(isOpen?null:e.date)}>
-            <div>
-              <span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.date}</span>
-              <span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{parseD(e.date).toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span>
-            </div>
-            <div style={{display:"flex",gap:6,alignItems:"center"}}>
-              <button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.date);}}>Delete</button>
-              <span style={{color:"#9333ea",fontWeight:700}}>{isOpen?"▲":"▼"}</span>
-            </div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setOpenId(isOpen?null:e.date)}>
+            <div><span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.date}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{parseD(e.date).toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span></div>
+            <div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.date);}}>Delete</button><span style={{color:"#9333ea",fontWeight:700}}>{isOpen?"▲":"▼"}</span></div>
           </div>
-          {isOpen&&<div style={{padding:14}}>
-            <div className="lbl">📊 Presentation notes / outline</div>
-            <RTE value={notes[`fri_pres_${e.date}`]||""} onChange={v=>setNote(`fri_pres_${e.date}`,v)} placeholder="Key results to present, slide outline, questions..." minH={200}/>
-          </div>}
+          {isOpen&&<div style={{padding:14}}><div className="lbl">📊 Presentation notes</div><RTE value={notes[`fri_pres_${e.date}`]||""} onChange={v=>setNote(`fri_pres_${e.date}`,v)} placeholder="Key results, slide outline, questions..." minH={200}/></div>}
         </div>
       );
     })}
   </>);
 }
 
-/* ── NAV ── */
+/* NAV */
 const NAV=[
   {id:"planner",icon:"📋",label:"Daily Plan",sec:"MAIN"},
   {id:"ai_meet",icon:"🤖",label:"AI Meeting",sec:"MEETINGS"},
@@ -369,7 +270,7 @@ const NAV=[
   {id:"library",icon:"📚",label:"Notes Library"},
 ];
 
-/* ── App ── */
+/* App */
 function App(){
   const [tab,setTab]=useState("planner");
   const [col,setCol]=useState(false);
@@ -383,15 +284,19 @@ function App(){
   const [protocols,setProtocols]=useState(()=>LS.get("p_prot",[]));
   const [libNotes,setLibNotes]=useState(()=>LS.get("p_lib",[]));
   const [done,setDone]=useState(()=>LS.get("p_done",{}));
-  const [editCell,setEditCell]=useState(null); // index of cell being edited
-  const [editOrg,setEditOrg]=useState(null);   // index of org being edited
+  const [modal,setModal]=useState(null);
   const [expLib,setExpLib]=useState(null);
+  const [expProt,setExpProt]=useState(null);
+
+  // form states
   const [nt,setNt]=useState({type:"coding",title:"",time:"09:00",duration:60,detail:""});
   const [ne,setNe]=useState({cat:"poster",title:"",deadline:"",reminderDays:7,detail:""});
-  const [nc,setNc]=useState({name:"",passage:0,passageDate:""});
+  const [nc,setNc]=useState({name:"",passage:"",passageDate:""});
   const [no,setNo]=useState({name:"",type:"normal",format:"gel",seedDate:""});
   const [np,setNp]=useState({title:"",category:""});
   const [nl,setNl]=useState({title:"",tag:""});
+  const [editCellIdx,setEditCellIdx]=useState(null);
+  const [editOrgIdx,setEditOrgIdx]=useState(null);
 
   useEffect(()=>LS.set("p_cells",cells),[cells]);
   useEffect(()=>LS.set("p_orgs",orgs),[orgs]);
@@ -421,6 +326,26 @@ function App(){
   const archivedEvents=events.filter(e=>e.archived);
   const reminders=activeEvents.filter(e=>e.daysLeft>=0&&e.daysLeft<=e.reminderDays);
 
+  const openAddCell=()=>{setNc({name:"",passage:"",passageDate:date});setEditCellIdx(null);setModal("cell");};
+  const openEditCell=(c,i)=>{setNc({name:c.name,passage:String(c.passage),passageDate:c.passageDate});setEditCellIdx(i);setModal("cell");};
+  const saveCell=()=>{
+    if(!nc.name||!nc.passageDate)return;
+    const obj={...nc,id:editCellIdx===null?Date.now():cells[editCellIdx].id};
+    if(editCellIdx===null)setCells(prev=>[...prev,obj]);
+    else setCells(prev=>prev.map((x,j)=>j===editCellIdx?obj:x));
+    setModal(null);
+  };
+
+  const openAddOrg=()=>{setNo({name:"",type:"normal",format:"gel",seedDate:date});setEditOrgIdx(null);setModal("org");};
+  const openEditOrg=(o,i)=>{setNo({name:o.name,type:o.type,format:o.format,seedDate:o.seedDate});setEditOrgIdx(i);setModal("org");};
+  const saveOrg=()=>{
+    if(!no.name||!no.seedDate)return;
+    const obj={...no,id:editOrgIdx===null?Date.now():orgs[editOrgIdx].id};
+    if(editOrgIdx===null)setOrgs(prev=>[...prev,obj]);
+    else setOrgs(prev=>prev.map((x,j)=>j===editOrgIdx?obj:x));
+    setModal(null);
+  };
+
   const exportICS=()=>{
     const evts=[];
     labToday.forEach((t,i)=>{const hr=String(9+i).padStart(2,"0"),ds=date.replace(/-/g,"");evts.push(`BEGIN:VEVENT\nSUMMARY:[Lab] ${t.name} – ${t.label}\nDTSTART:${ds}T${hr}0000\nDTEND:${ds}T${hr}3000\nEND:VEVENT`);});
@@ -429,40 +354,36 @@ function App(){
     const a=document.createElement("a");a.href="data:text/calendar;charset=utf-8,"+encodeURIComponent(`BEGIN:VCALENDAR\nVERSION:2.0\n${evts.join("\n")}\nEND:VCALENDAR`);a.download=`phd-${date}.ics`;a.click();
   };
 
-  const curNav=NAV.find(n=>n.id===tab)||NAV[0];
   let lastSec="";
 
   return(
     <div id="app">
       {/* SIDEBAR */}
-      <div id="sidebar" className={col?"col":""}>
-        <div className="sb-logo">
-          <div className="t hidelabel">🎓 Yashi's PhD</div>
-          <div className="s hidelabel">Lab · Life · Research</div>
+      <div id="sb" className={col?"col":""}>
+        <div className="sbl">
+          <div className="t hl">🎓 Yashi's PhD</div>
+          <div className="s hl">Lab · Life · Research</div>
           {col&&<div style={{fontSize:20,textAlign:"center",marginTop:4}}>🎓</div>}
         </div>
         {NAV.map(n=>{
-          const showSec=n.sec&&n.sec!==lastSec;
-          if(n.sec)lastSec=n.sec;
+          const show=n.sec&&n.sec!==lastSec;if(n.sec)lastSec=n.sec;
           return(
             <React.Fragment key={n.id}>
-              {showSec&&<div className="sb-sec hidelabel">{n.sec}</div>}
-              <div className={`sb-item${tab===n.id?" act":""}`} onClick={()=>setTab(n.id)}>
-                <span className="ico">{n.icon}</span>
-                <span className="lbl hidelabel">{n.label}</span>
+              {show&&<div className="sbs hl">{n.sec}</div>}
+              <div className={`sbi${tab===n.id?" act":""}`} onClick={()=>setTab(n.id)}>
+                <span className="ic">{n.icon}</span><span className="lb hl">{n.label}</span>
               </div>
             </React.Fragment>
           );
         })}
-        <div style={{flex:1}}/>
-        <div className="sb-div"/>
-        <button className="sb-tog" onClick={()=>setCol(!col)}>{col?"▶":"◀"}</button>
+        <div style={{flex:1}}/><div className="sdv"/>
+        <button className="stg" onClick={()=>setCol(!col)}>{col?"▶":"◀"}</button>
       </div>
 
       {/* MAIN */}
       <div id="main">
-        <div id="topbar">
-          <span style={{fontWeight:700,fontSize:15,color:"#1e3a5f"}}>{curNav.icon} {curNav.label}</span>
+        <div id="top">
+          <span style={{fontWeight:700,fontSize:15,color:"#1e3a5f"}}>{NAV.find(n=>n.id===tab)?.icon} {NAV.find(n=>n.id===tab)?.label}</span>
           {(tab==="planner"||tab==="notes")&&<>
             <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:6}}>
               <button onClick={()=>navDay(-1)} style={{background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:7,padding:"4px 10px",cursor:"pointer",fontWeight:700}}>◀</button>
@@ -477,18 +398,14 @@ function App(){
           </div>}
         </div>
 
-        <div id="content">
+        <div id="body">
 
-          {/* ══ DAILY ══ */}
+          {/* DAILY */}
           {tab==="planner"&&(<>
-            {dow===1&&<div className="card" style={{background:"#eff6ff",border:"1px solid #bfdbfe"}}>
-              <b style={{color:"#1d4ed8"}}>🧪 Monday — Individual Lab Meeting</b>
-              <div style={{display:"flex",gap:8,marginTop:6}}><span className="tag" style={{background:"#6366f1"}}>AI</span><span className="tag" style={{background:"#0891b2"}}>Cardioid</span></div>
-            </div>}
+            {dow===1&&<div className="card" style={{background:"#eff6ff",border:"1px solid #bfdbfe"}}><b style={{color:"#1d4ed8"}}>🧪 Monday — Individual Lab Meeting</b><div style={{display:"flex",gap:8,marginTop:6}}><span className="tag" style={{background:"#6366f1"}}>AI</span><span className="tag" style={{background:"#0891b2"}}>Cardioid</span></div></div>}
             {dow===5&&<div className="card" style={{background:meeting.myTurn?"#fff7ed":"#f0fdf4",border:`1px solid ${meeting.myTurn?"#fed7aa":"#bbf7d0"}`}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div><b style={{color:meeting.myTurn?"#c2410c":"#15803d"}}>🎤 Friday — Group Presentation</b>
-                <div style={{fontSize:13,color:meeting.myTurn?"#ea580c":"#16a34a",marginTop:2}}>{meeting.myTurn?"🔴 YOUR turn to present!":"✅ Not your turn"}</div></div>
+                <div><b style={{color:meeting.myTurn?"#c2410c":"#15803d"}}>🎤 Friday — Group Presentation</b><div style={{fontSize:13,color:meeting.myTurn?"#ea580c":"#16a34a",marginTop:2}}>{meeting.myTurn?"🔴 YOUR turn to present!":"✅ Not your turn"}</div></div>
                 <button className="btn" style={{background:meeting.myTurn?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurn:!meeting.myTurn})}>{meeting.myTurn?"✓ Done":"My Turn"}</button>
               </div>
             </div>}
@@ -520,8 +437,7 @@ function App(){
             </div>
             <div className="card" style={{background:"#f8faff",border:"1px solid #e0e7ff"}}>
               <div style={{fontWeight:700,fontSize:13,color:"#4338ca",marginBottom:6}}>📅 Tomorrow — {addDays(date,1)}</div>
-              {labTomorrow.length===0?<div style={{color:"#a5b4fc",fontSize:12}}>No lab tasks</div>
-                :labTomorrow.map((t,i)=><div key={i} style={{fontSize:12,color:"#3730a3",marginBottom:3}}>🔬 <strong>{t.name}</strong>: {t.label}</div>)}
+              {labTomorrow.length===0?<div style={{color:"#a5b4fc",fontSize:12}}>No lab tasks</div>:labTomorrow.map((t,i)=><div key={i} style={{fontSize:12,color:"#3730a3",marginBottom:3}}>🔬 <strong>{t.name}</strong>: {t.label}</div>)}
             </div>
             <div className="card" style={{border:"1px solid #fde68a",background:"#fffbeb"}}>
               <div style={{fontWeight:700,fontSize:14,marginBottom:3,color:"#92400e"}}>🌙 Daily Reflection</div>
@@ -530,12 +446,12 @@ function App(){
             </div>
           </>)}
 
-          {/* ══ MEETINGS ══ */}
+          {/* MEETINGS */}
           {tab==="ai_meet"&&<MeetingTab dirKey="mon_ai" color="#6366f1" icon="🤖" label="AI Direction" notes={notes} setNotes={setNotes} curDate={date}/>}
           {tab==="card_meet"&&<MeetingTab dirKey="mon_card" color="#0891b2" icon="🫀" label="Cardioid Direction" notes={notes} setNotes={setNotes} curDate={date}/>}
           {tab==="fri_meet"&&<FridayTab notes={notes} setNotes={setNotes} meeting={meeting} setMeeting={setMeeting} curDate={date}/>}
 
-          {/* ══ EVENTS ══ */}
+          {/* EVENTS */}
           {tab==="events"&&(<>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <strong style={{fontSize:14}}>🎯 Deadlines & Events</strong>
@@ -546,61 +462,55 @@ function App(){
               <div key={e.id} className="card" style={{borderLeft:`4px solid ${overdue?"#ef4444":urgent?"#f59e0b":cat?.color||"#94a3b8"}`}}>
                 <div style={{display:"flex",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
                   <div style={{flex:1}}>
-                    <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:4}}>
-                      <span className="tag" style={{background:cat?.color||"#94a3b8"}}>{cat?.label||e.cat}</span>
-                      {overdue&&<span className="tag" style={{background:"#ef4444"}}>OVERDUE</span>}
-                      {!overdue&&urgent&&<span className="tag" style={{background:"#f59e0b"}}>⚠️ Soon</span>}
-                    </div>
+                    <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:4}}><span className="tag" style={{background:cat?.color||"#94a3b8"}}>{cat?.label||e.cat}</span>{overdue&&<span className="tag" style={{background:"#ef4444"}}>OVERDUE</span>}{!overdue&&urgent&&<span className="tag" style={{background:"#f59e0b"}}>⚠️ Soon</span>}</div>
                     <div style={{fontWeight:700,fontSize:14,marginBottom:2}}>{e.title}</div>
                     {e.detail&&<div style={{fontSize:12,color:"#64748b",marginBottom:3}}>{e.detail}</div>}
                     <div style={{fontSize:12}}><span style={{color:"#64748b"}}>Deadline: </span><strong style={{color:overdue?"#ef4444":urgent?"#f59e0b":"#334155"}}>{e.deadline}</strong><span style={{marginLeft:6,color:overdue?"#ef4444":urgent?"#f59e0b":"#94a3b8"}}>{overdue?`(${Math.abs(e.daysLeft)}d overdue)`:e.daysLeft===0?"🔴 TODAY!":`(${e.daysLeft}d left)`}</span></div>
                     {!overdue&&<div style={{marginTop:6,height:3,background:"#f1f5f9",borderRadius:3,overflow:"hidden"}}><div style={{height:"100%",borderRadius:3,width:`${Math.min(100,Math.max(0,((e.reminderDays-e.daysLeft)/e.reminderDays)*100))}%`,background:e.daysLeft<=3?"#ef4444":e.daysLeft<=7?"#f59e0b":"#10b981"}}/></div>}
                   </div>
                   <div style={{display:"flex",gap:5,flexDirection:"column"}}>
-                    <button className="btn" style={{background:"#10b981",fontSize:12,padding:"4px 10px"}} onClick={()=>setEvents(events.map(x=>x.id===e.id?{...x,archived:true}:x))}>✓ Done</button>
+                    <button className="btn" style={{background:"#10b981",fontSize:12,padding:"4px 10px"}} onClick={()=>setEvents(events.map(x=>x.id===e.id?{...x,archived:true}:x))}>✓</button>
                     <button className="btn" style={{background:"#ef4444",fontSize:12,padding:"4px 10px"}} onClick={()=>setEvents(events.filter(x=>x.id!==e.id))}>✕</button>
                   </div>
                 </div>
               </div>);})}
             {archivedEvents.length>0&&<details style={{marginTop:6}}><summary style={{cursor:"pointer",color:"#94a3b8",fontSize:13,fontWeight:600,padding:"6px 0"}}>✅ Archived ({archivedEvents.length})</summary>
-              {archivedEvents.map(e=>{const cat=ECATS.find(x=>x.id===e.cat);return<div key={e.id} className="card" style={{opacity:.6,marginTop:6}}>
-                <div style={{display:"flex",justifyContent:"space-between"}}>
-                  <div><span className="tag" style={{background:cat?.color||"#94a3b8"}}>{cat?.label||e.cat}</span><span style={{marginLeft:8,fontWeight:600,fontSize:13}}>{e.title}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{e.deadline}</span></div>
-                  <button onClick={()=>setEvents(events.filter(x=>x.id!==e.id))} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer"}}>✕</button>
-                </div>
-              </div>;})}
+              {archivedEvents.map(e=>{const cat=ECATS.find(x=>x.id===e.cat);return<div key={e.id} className="card" style={{opacity:.6,marginTop:6}}><div style={{display:"flex",justifyContent:"space-between"}}><div><span className="tag" style={{background:cat?.color||"#94a3b8"}}>{cat?.label||e.cat}</span><span style={{marginLeft:8,fontWeight:600,fontSize:13}}>{e.title}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{e.deadline}</span></div><button onClick={()=>setEvents(events.filter(x=>x.id!==e.id))} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer"}}>✕</button></div></div>;})}
             </details>}
           </>)}
 
-          {/* ══ CELLS ══ */}
+          {/* CELLS */}
           {tab==="cells"&&(<>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <strong style={{fontSize:14}}>🧫 Cell Line Tracker</strong>
-              <button className="btn" style={{background:"#8b5cf6",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNc({name:"",passage:0,passageDate:date});setModal("cell");}}>+ Add</button>
+              <button className="btn" style={{background:"#8b5cf6",fontSize:12,padding:"5px 11px"}} onClick={openAddCell}>+ Add</button>
             </div>
             <div className="card" style={{background:"#fafafa",padding:"9px 13px",marginBottom:10,fontSize:12,color:"#64748b"}}><strong style={{color:"#334155"}}>Protocol:</strong> D0: Ri+E8 → D1: E8 → D2–D3: E8F → D4+: Passage required</div>
             {cells.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No cell lines added</div>}
-            {cells.map((c,i)=>{const day=diffD(c.passageDate,date),media=getCellMedia(day),warn=day>=4;return(
-              <div key={c.id} className="card" style={{borderLeft:`4px solid ${warn?"#ef4444":media?"#10b981":"#e2e8f0"}`}}>
-                <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
-                  <div><span style={{fontWeight:700,fontSize:14}}>{c.name}</span><span className="tag" style={{background:"#8b5cf6",marginLeft:7}}>P{c.passage}</span><div style={{color:"#64748b",fontSize:12,marginTop:2}}>Passaged: {c.passageDate} | Today: <strong>D{day}</strong></div></div>
-                  <div style={{display:"flex",gap:6}}>
-                    <button className="btn" style={{background:"#f59e0b",fontSize:12,padding:"5px 10px"}} onClick={()=>{setNc({...c});setEditCell(i);setModal("editcell");}}>✏️ Edit</button>
-                    <button className="btn" style={{background:"#3b82f6",fontSize:12,padding:"5px 10px"}} onClick={()=>setCells(cells.map((x,j)=>j===i?{...x,passage:x.passage+1,passageDate:date}:x))}>Passage → P{c.passage+1}</button>
-                    <button className="btn" style={{background:"#ef4444",fontSize:12,padding:"5px 10px"}} onClick={()=>setCells(cells.filter((_,j)=>j!==i))}>✕</button>
+            {cells.map((c,i)=>{
+              const day=diffD(c.passageDate,date),media=getCellMedia(day),warn=day>=4;
+              return(
+                <div key={c.id||i} className="card" style={{borderLeft:`4px solid ${warn?"#ef4444":media?"#10b981":"#e2e8f0"}`}}>
+                  <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8,alignItems:"flex-start"}}>
+                    <div><span style={{fontWeight:700,fontSize:14}}>{c.name}</span><span className="tag" style={{background:"#8b5cf6",marginLeft:7}}>P{c.passage}</span><div style={{color:"#64748b",fontSize:12,marginTop:2}}>Passaged: {c.passageDate} | Today: <strong>D{day}</strong></div></div>
+                    <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                      <button className="btn" style={{background:"#3b82f6",fontSize:12,padding:"5px 10px"}} onClick={()=>setCells(cells.map((x,j)=>j===i?{...x,passage:Number(x.passage)+1,passageDate:date}:x))}>Passage → P{Number(c.passage)+1}</button>
+                      <button className="btn" style={{background:"#f59e0b",fontSize:12,padding:"5px 10px"}} onClick={()=>openEditCell(c,i)}>✏️</button>
+                      <button className="btn" style={{background:"#ef4444",fontSize:12,padding:"5px 10px"}} onClick={()=>setCells(cells.filter((_,j)=>j!==i))}>✕</button>
+                    </div>
+                  </div>
+                  <div style={{marginTop:8,padding:"7px 11px",borderRadius:8,background:warn?"#fff1f2":media?"#f0fdf4":"#f8fafc",border:`1px solid ${warn?"#fecaca":media?"#bbf7d0":"#e2e8f0"}`}}>
+                    {warn?<span style={{color:"#dc2626",fontWeight:700,fontSize:13}}>⚠️ Passage required! (D{day})</span>:media?<span style={{color:"#16a34a",fontWeight:700,fontSize:13}}>💊 Today: {media}</span>:<span style={{color:"#94a3b8",fontSize:13}}>No action today</span>}
                   </div>
                 </div>
-                <div style={{marginTop:8,padding:"7px 11px",borderRadius:8,background:warn?"#fff1f2":media?"#f0fdf4":"#f8fafc",border:`1px solid ${warn?"#fecaca":media?"#bbf7d0":"#e2e8f0"}`}}>
-                  {warn?<span style={{color:"#dc2626",fontWeight:700,fontSize:13}}>⚠️ Passage required! (D{day})</span>:media?<span style={{color:"#16a34a",fontWeight:700,fontSize:13}}>💊 Today: {media}</span>:<span style={{color:"#94a3b8",fontSize:13}}>No action today</span>}
-                </div>
-              </div>);})}
+              );})}
           </>)}
 
-          {/* ══ ORGANOIDS ══ */}
+          {/* ORGANOIDS */}
           {tab==="orgs"&&(<>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <strong style={{fontSize:14}}>🫀 Organoid Tracker</strong>
-              <button className="btn" style={{background:"#0891b2",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNo({name:"",type:"normal",format:"gel",seedDate:date});setModal("org");}}>+ Add Batch</button>
+              <button className="btn" style={{background:"#0891b2",fontSize:12,padding:"5px 11px"}} onClick={openAddOrg}>+ Add Batch</button>
             </div>
             {orgs.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No batches added</div>}
             {orgs.map((o,i)=>{
@@ -608,14 +518,14 @@ function App(){
               const d0=parseD(o.seedDate);d0.setDate(d0.getDate()+3);
               const upcoming=[];for(let d=day+1;d<=21&&upcoming.length<4;d++){const t=getTask(d);if(t)upcoming.push({day:d,task:t,date:addDays(o.seedDate,d+3)});}
               return(
-                <div key={o.id} className="card" style={{borderLeft:`4px solid ${tc}`}}>
-                  <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+                <div key={o.id||i} className="card" style={{borderLeft:`4px solid ${tc}`}}>
+                  <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8,alignItems:"flex-start"}}>
                     <div>
                       <div style={{display:"flex",gap:5,alignItems:"center",flexWrap:"wrap"}}><span style={{fontWeight:700,fontSize:14}}>{o.name}</span><span className="tag" style={{background:tc,fontSize:10}}>{o.type==="normal"?"Normal":"Vasc"}</span><span className="tag" style={{background:"#f59e0b",fontSize:10}}>{o.format.toUpperCase()}</span>{day>21&&<span className="tag" style={{background:"#10b981",fontSize:10}}>✅ Done</span>}</div>
                       <div style={{color:"#64748b",fontSize:12,marginTop:2}}>Seeding: {o.seedDate} | D0: {fmt(d0)} | Today: <strong>D{day}</strong></div>
                     </div>
-                    <div style={{display:"flex",gap:6}}>
-                      <button className="btn" style={{background:"#f59e0b",fontSize:12,padding:"5px 10px"}} onClick={()=>{setNo({...o});setEditOrg(i);setModal("editorg");}}>✏️ Edit</button>
+                    <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                      <button className="btn" style={{background:"#f59e0b",fontSize:12,padding:"5px 10px"}} onClick={()=>openEditOrg(o,i)}>✏️</button>
                       <button className="btn" style={{background:"#ef4444",fontSize:12,padding:"5px 10px"}} onClick={()=>setOrgs(orgs.filter((_,j)=>j!==i))}>✕</button>
                     </div>
                   </div>
@@ -627,7 +537,7 @@ function App(){
               );})}
           </>)}
 
-          {/* ══ NOTES ══ */}
+          {/* NOTES */}
           {tab==="notes"&&(<>
             <div className="card">
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:6}}>
@@ -645,8 +555,7 @@ function App(){
             {(()=>{
               const past=Object.entries(notes).filter(([k,v])=>v&&k.match(/^\d{4}-\d{2}-\d{2}$/)&&k!==date).sort(([a],[b])=>b.localeCompare(a));
               if(!past.length)return null;
-              return<div className="card">
-                <div style={{fontWeight:700,fontSize:13,marginBottom:10,color:"#374151"}}>🗂 Past Entries ({past.length})</div>
+              return<div className="card"><div style={{fontWeight:700,fontSize:13,marginBottom:10,color:"#374151"}}>🗂 Past Entries ({past.length})</div>
                 {past.map(([d,v])=>{const preview=v.replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,100);return(
                   <div key={d} style={{borderRadius:8,border:"1px solid #e2e8f0",marginBottom:7,overflow:"hidden"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",background:"#f8fafc",cursor:"pointer"}} onClick={()=>setDate(d)}>
@@ -658,7 +567,7 @@ function App(){
             })()}
           </>)}
 
-          {/* ══ PROTOCOLS ══ */}
+          {/* PROTOCOLS */}
           {tab==="protocols"&&(<>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <strong style={{fontSize:14}}>📂 Protocols</strong>
@@ -675,7 +584,7 @@ function App(){
               </div>);})}
           </>)}
 
-          {/* ══ LIBRARY ══ */}
+          {/* LIBRARY */}
           {tab==="library"&&(<>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <strong style={{fontSize:14}}>📚 Notes Library</strong>
@@ -699,69 +608,48 @@ function App(){
       {modal==="task"&&<Modal title="➕ Add Schedule Item" onClose={()=>setModal(null)}>
         <div className="lbl">Type</div><select className="inp" value={nt.type} onChange={e=>setNt({...nt,type:e.target.value})}>{TTYPES.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}</select>
         <div className="lbl">Title</div><input className="inp" value={nt.title} onChange={e=>setNt({...nt,title:e.target.value})} placeholder="e.g. CS101 Lecture"/>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}><div><div className="lbl">Start time</div><input className="inp" type="time" value={nt.time} onChange={e=>setNt({...nt,time:e.target.value})}/></div><div><div className="lbl">Duration (min)</div><input className="inp" type="number" value={nt.duration} onChange={e=>setNt({...nt,duration:parseInt(e.target.value)||60})}/></div></div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}><div><div className="lbl">Start time</div><input className="inp" type="time" value={nt.time} onChange={e=>setNt({...nt,time:e.target.value})}/></div><div><div className="lbl">Duration (min)</div><input className="inp" value={nt.duration} onChange={e=>setNt({...nt,duration:e.target.value})}/></div></div>
         <div className="lbl">Notes</div><input className="inp" value={nt.detail} onChange={e=>setNt({...nt,detail:e.target.value})} placeholder="Location, link..."/>
         <button className="btn" style={{background:"#6366f1",width:"100%",padding:10}} onClick={()=>{if(!nt.title)return;setPtasks({...ptasks,[date]:[...(ptasks[date]||[]),{...nt,id:Date.now()}]});setModal(null);}}>Add</button>
       </Modal>}
+
       {modal==="event"&&<Modal title="➕ Add Deadline" onClose={()=>setModal(null)}>
         <div className="lbl">Category</div><select className="inp" value={ne.cat} onChange={e=>setNe({...ne,cat:e.target.value})}>{ECATS.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}</select>
         <div className="lbl">Title</div><input className="inp" value={ne.title} onChange={e=>setNe({...ne,title:e.target.value})} placeholder="e.g. Submit AHA Poster"/>
         <div className="lbl">Deadline</div><input className="inp" type="date" value={ne.deadline} onChange={e=>setNe({...ne,deadline:e.target.value})}/>
-        <div className="lbl">Remind me _ days before</div><input className="inp" type="number" value={ne.reminderDays} onChange={e=>setNe({...ne,reminderDays:parseInt(e.target.value)||7})}/>
+        <div className="lbl">Remind me _ days before</div><input className="inp" value={ne.reminderDays} onChange={e=>setNe({...ne,reminderDays:e.target.value})}/>
         <div className="lbl">Notes</div><input className="inp" value={ne.detail} onChange={e=>setNe({...ne,detail:e.target.value})} placeholder="Conference, link..."/>
         <button className="btn" style={{background:"#1e3a5f",width:"100%",padding:10}} onClick={()=>{if(!ne.title||!ne.deadline)return;setEvents([...events,{...ne,id:Date.now(),archived:false}]);setModal(null);}}>Add</button>
       </Modal>}
-      {modal==="cell"&&<Modal title="➕ Add Cell Line" onClose={()=>setModal(null)}>
-        <div className="lbl">Name</div><input className="inp" value={nc.name} onChange={e=>setNc({...nc,name:e.target.value})} placeholder="e.g. iPSC-Line1"/>
-        <div className="lbl">Passage (P)</div><input className="inp" type="number" value={nc.passage} onChange={e=>setNc({...nc,passage:parseInt(e.target.value)||0})}/>
+
+      {modal==="cell"&&<Modal title={editCellIdx===null?"➕ Add Cell Line":"✏️ Edit Cell Line"} onClose={()=>setModal(null)}>
+        <div className="lbl">Cell line name</div><input className="inp" value={nc.name} onChange={e=>setNc({...nc,name:e.target.value})} placeholder="e.g. iPSC-Line1"/>
+        <div className="lbl">Current passage (P)</div><input className="inp" value={nc.passage} onChange={e=>setNc({...nc,passage:e.target.value})} placeholder="e.g. 10"/>
         <div className="lbl">Last passage date (D0)</div><input className="inp" type="date" value={nc.passageDate} onChange={e=>setNc({...nc,passageDate:e.target.value})}/>
-        <button className="btn" style={{background:"#8b5cf6",width:"100%",padding:10}} onClick={()=>{if(!nc.name||!nc.passageDate)return;setCells([...cells,{...nc,id:Date.now()}]);setModal(null);}}>Add</button>
+        <button className="btn" style={{background:editCellIdx===null?"#8b5cf6":"#f59e0b",width:"100%",padding:10}} onClick={saveCell}>{editCellIdx===null?"Add Cell Line":"Save Changes"}</button>
       </Modal>}
-      {modal==="org"&&<Modal title="➕ Add Organoid Batch" onClose={()=>setModal(null)}>
+
+      {modal==="org"&&<Modal title={editOrgIdx===null?"➕ Add Organoid Batch":"✏️ Edit Organoid Batch"} onClose={()=>setModal(null)}>
         <div className="lbl">Batch name</div><input className="inp" value={no.name} onChange={e=>setNo({...no,name:e.target.value})} placeholder="e.g. Batch-A"/>
         <div className="lbl">Protocol</div><select className="inp" value={no.type} onChange={e=>setNo({...no,type:e.target.value})}><option value="normal">Normal</option><option value="vasc">Vascularized</option></select>
         <div className="lbl">Format</div><select className="inp" value={no.format} onChange={e=>setNo({...no,format:e.target.value})}><option value="gel">Gel</option><option value="normal">Normal</option><option value="chip">Chip</option></select>
         <div className="lbl">Seeding date (D-3)</div><input className="inp" type="date" value={no.seedDate} onChange={e=>setNo({...no,seedDate:e.target.value})}/>
         {no.seedDate&&<div style={{background:"#eff6ff",borderRadius:8,padding:"6px 10px",fontSize:12,color:"#1d4ed8",marginBottom:10}}>D0 (CHIR): {addDays(no.seedDate,3)}</div>}
-        <button className="btn" style={{background:"#0891b2",width:"100%",padding:10}} onClick={()=>{if(!no.name||!no.seedDate)return;setOrgs([...orgs,{...no,id:Date.now()}]);setModal(null);}}>Add</button>
+        <button className="btn" style={{background:editOrgIdx===null?"#0891b2":"#f59e0b",width:"100%",padding:10}} onClick={saveOrg}>{editOrgIdx===null?"Add Batch":"Save Changes"}</button>
       </Modal>}
+
       {modal==="prot"&&<Modal title="➕ Add Protocol" onClose={()=>setModal(null)}>
         <div className="lbl">Protocol name</div><input className="inp" value={np.title} onChange={e=>setNp({...np,title:e.target.value})} placeholder="e.g. iPSC Cardioid Differentiation"/>
         <div className="lbl">Category (optional)</div><input className="inp" value={np.category} onChange={e=>setNp({...np,category:e.target.value})} placeholder="e.g. Wet Lab / Imaging"/>
         <button className="btn" style={{background:"#1e3a5f",width:"100%",padding:10}} onClick={()=>{if(!np.title)return;setProtocols([...protocols,{...np,id:Date.now(),content:""}]);setModal(null);}}>Add</button>
       </Modal>}
-      {modal==="editcell"&&<Modal title="✏️ Edit Cell Line" onClose={()=>setModal(null)}>
-        <div className="lbl">Name</div><input className="inp" value={nc.name} onChange={e=>setNc({...nc,name:e.target.value})}/>
-        <div className="lbl">Current passage (P)</div><input className="inp" type="text" inputMode="numeric" value={nc.passage} onChange={e=>setNc({...nc,passage:e.target.value})}/>
-        <div className="lbl">Last passage date (D0)</div><input className="inp" type="date" value={nc.passageDate} onChange={e=>setNc({...nc,passageDate:e.target.value})}/>
-        <button className="btn" style={{background:"#f59e0b",width:"100%",padding:10}} onClick={()=>{
-          if(!nc.name||!nc.passageDate)return;
-          setCells(cells.map((x,j)=>j===editCell?{...x,...nc}:x));
-          setModal(null);
-        }}>Save Changes</button>
-      </Modal>}
-      {modal==="editorg"&&<Modal title="✏️ Edit Organoid Batch" onClose={()=>setModal(null)}>
-        <div className="lbl">Batch name</div><input className="inp" value={no.name} onChange={e=>setNo({...no,name:e.target.value})}/>
-        <div className="lbl">Protocol</div>
-        <select className="inp" value={no.type} onChange={e=>setNo({...no,type:e.target.value})}>
-          <option value="normal">Normal</option><option value="vasc">Vascularized</option>
-        </select>
-        <div className="lbl">Format</div>
-        <select className="inp" value={no.format} onChange={e=>setNo({...no,format:e.target.value})}>
-          <option value="gel">Gel</option><option value="normal">Normal</option><option value="chip">Chip</option>
-        </select>
-        <div className="lbl">Seeding date (D-3)</div><input className="inp" type="date" value={no.seedDate} onChange={e=>setNo({...no,seedDate:e.target.value})}/>
-        {no.seedDate&&<div style={{background:"#eff6ff",borderRadius:8,padding:"6px 10px",fontSize:12,color:"#1d4ed8",marginBottom:10}}>D0 (CHIR): {addDays(no.seedDate,3)}</div>}
-        <button className="btn" style={{background:"#f59e0b",width:"100%",padding:10}} onClick={()=>{
-          if(!no.name||!no.seedDate)return;
-          setOrgs(orgs.map((x,j)=>j===editOrg?{...x,...no}:x));
-          setModal(null);
-        }}>Save Changes</button>
-      </Modal>}
+
+      {modal==="lib"&&<Modal title="➕ Add Library Note" onClose={()=>setModal(null)}>
         <div className="lbl">Title</div><input className="inp" value={nl.title} onChange={e=>setNl({...nl,title:e.target.value})} placeholder="e.g. Paper summary: Nature 2024"/>
         <div className="lbl">Tag (optional)</div><input className="inp" value={nl.tag} onChange={e=>setNl({...nl,tag:e.target.value})} placeholder="e.g. Paper / Lecture / Idea"/>
         <button className="btn" style={{background:"#8b5cf6",width:"100%",padding:10}} onClick={()=>{if(!nl.title)return;setLibNotes([...libNotes,{...nl,id:Date.now(),date:todayStr(),content:""}]);setModal(null);}}>Add</button>
       </Modal>}
+
     </div>
   );
 }

@@ -54,12 +54,12 @@ input,select,textarea,button{font-family:inherit;}
 .rte-body{min-height:120px;padding:10px 12px;outline:none;font-size:14px;line-height:1.75;background:white;overflow-x:hidden;overflow-y:auto;word-break:break-word;}
 .rte-body:focus{outline:none;}
 .rte-body ul{padding-left:20px;}.rte-body ol{padding-left:20px;}
-.rte-body .cl-item{display:flex;align-items:flex-start;gap:6px;margin:3px 0;padding:1px 0;}
-.rte-body .cl-item input[type=checkbox]{width:16px;height:16px;margin-top:3px;flex-shrink:0;cursor:pointer;accent-color:#6366f1;}
-.rte-body .cl-item span.cl-text{flex:1;outline:none;min-width:20px;}
-.rte-body .cl-item.done span.cl-text{text-decoration:line-through;color:#94a3b8;}
-.rte-body .cl-item .cl-del{background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:14px;padding:0 2px;line-height:1;flex-shrink:0;margin-top:2px;}
-.rte-body .cl-item .cl-del:hover{color:#ef4444;}
+.rte-body .cl-item{display:flex;align-items:flex-start;gap:6px;margin:2px 0;}
+.rte-body .cl-cb{display:inline-block;width:17px;height:17px;border:2px solid #94a3b8;border-radius:4px;flex-shrink:0;cursor:pointer;margin-top:3px;text-align:center;font-size:12px;line-height:13px;user-select:none;color:white;background:white;}
+.rte-body .cl-cb.checked{background:#6366f1;border-color:#6366f1;}
+.rte-body .cl-cb.checked::after{content:'✓';}
+.rte-body .cl-text{flex:1;outline:none;min-width:4px;}
+.rte-body .cl-item.done .cl-text{text-decoration:line-through;color:#94a3b8;}
 .rte-body:empty:before{content:attr(data-ph);color:#94a3b8;pointer-events:none;display:block;}
 
 /* Misc */
@@ -95,101 +95,79 @@ const HIGHLIGHTS=["#fef08a","#bbf7d0","#bfdbfe","#fecaca","#e9d5ff","#fed7aa"];
 function RTE({value,onChange,placeholder,minH=120}){
   const ref=useRef(null);
   const skip=useRef(false);
-  const fireRef=useRef(null);
-  fireRef.current=()=>{skip.current=true;onChange(ref.current.innerHTML);};
-  const fire=()=>fireRef.current();
+  const cb=useRef(null); // stable onChange ref
+  cb.current=onChange;
+  const fire=()=>{skip.current=true;cb.current(ref.current.innerHTML);};
 
-  // Load HTML into editor
   useEffect(()=>{
     if(!ref.current||skip.current)return;
     ref.current.innerHTML=value||"";
-    // Fix any old cl-items missing cl-text class
-    ref.current.querySelectorAll(".cl-item").forEach(item=>{
-      const sp=item.querySelector("span:not(.cl-del)");
-      if(sp&&!sp.classList.contains("cl-text")){sp.className="cl-text";sp.setAttribute("contenteditable","true");}
-      const cb=item.querySelector("input[type=checkbox]");
-      if(cb)item.classList.toggle("done",cb.checked);
-    });
   },[value]);
   useEffect(()=>{skip.current=false;});
 
   const exec=(cmd,val=null)=>{document.execCommand(cmd,false,val);ref.current?.focus();};
 
-  const getClItem=(node)=>{
-    let n=node||window.getSelection()?.getRangeAt(0)?.startContainer;
-    while(n&&n!==ref.current){if(n.classList?.contains("cl-item"))return n;n=n.parentElement;}
-    return null;
-  };
-
-  const focusEnd=(item)=>{
-    const sp=item?.querySelector(".cl-text");if(!sp)return;
-    sp.focus();const r=document.createRange(),s=window.getSelection();
-    r.selectNodeContents(sp);r.collapse(false);s.removeAllRanges();s.addRange(r);
-  };
-
   const makeClItem=()=>{
-    const item=document.createElement("div");item.className="cl-item";
-    const cb=document.createElement("input");cb.type="checkbox";
-    const sp=document.createElement("span");sp.className="cl-text";sp.contentEditable="true";sp.innerHTML="<br>";
-    const del=document.createElement("button");del.className="cl-del";del.textContent="✕";del.title="Delete";
-    item.append(cb,sp,del);
-    return item;
+    const wrap=document.createElement("div");wrap.className="cl-item";
+    const box=document.createElement("span");box.className="cl-cb";box.contentEditable="false";
+    const txt=document.createElement("span");txt.className="cl-text";txt.contentEditable="true";txt.innerHTML="<br>";
+    wrap.append(box,txt);
+    return wrap;
   };
 
-  // Single delegated event listeners on the editor div — attached once on mount
+  // Delegated listeners — attached once
   useEffect(()=>{
     const el=ref.current;if(!el)return;
-
     const onMousedown=e=>{
-      if(e.target.classList.contains("cl-del")){
+      // toggle checkbox
+      if(e.target.classList.contains("cl-cb")){
         e.preventDefault();
-        const item=getClItem(e.target);
-        if(item){const prev=item.previousElementSibling;item.remove();
-          if(prev){const r=document.createRange(),s=window.getSelection();r.selectNodeContents(prev);r.collapse(false);s.removeAllRanges();s.addRange(r);}
-          fire();}
-      }
-    };
-
-    const onChange_=e=>{
-      if(e.target.type==="checkbox"){
-        const item=getClItem(e.target);
-        if(item)item.classList.toggle("done",e.target.checked);
+        e.target.classList.toggle("checked");
+        e.target.closest(".cl-item")?.classList.toggle("done",e.target.classList.contains("checked"));
         fire();
+        return;
       }
     };
-
     const onKeydown=e=>{
-      const item=getClItem();if(!item)return;
-      const sp=item.querySelector(".cl-text");
-      const empty=!sp||sp.innerText.replace(/[\u00a0\n]/g,"").trim()==="";
-
+      // find if cursor is inside a cl-item
+      const sel=window.getSelection();if(!sel||!sel.rangeCount)return;
+      let node=sel.getRangeAt(0).startContainer;
+      let item=null;
+      while(node&&node!==el){if(node.classList?.contains("cl-item")){item=node;break;}node=node.parentElement;}
+      if(!item)return;
+      const txt=item.querySelector(".cl-text");
+      const empty=!txt||txt.innerText.replace(/[\u00a0\n\r]/g,"").trim()==="";
       if(e.key==="Backspace"&&empty){
         e.preventDefault();
-        const prev=item.previousElementSibling;item.remove();
+        const prev=item.previousElementSibling;
+        item.remove();
         if(prev){const r=document.createRange(),s=window.getSelection();r.selectNodeContents(prev);r.collapse(false);s.removeAllRanges();s.addRange(r);}
         fire();
       } else if(e.key==="Enter"){
         e.preventDefault();
-        const next=makeClItem();item.after(next);focusEnd(next);fire();
+        const next=makeClItem();item.after(next);
+        const t=next.querySelector(".cl-text");t.focus();
+        const r=document.createRange(),s=window.getSelection();r.selectNodeContents(t);r.collapse(false);s.removeAllRanges();s.addRange(r);
+        fire();
       }
     };
-
     el.addEventListener("mousedown",onMousedown);
-    el.addEventListener("change",onChange_);
     el.addEventListener("keydown",onKeydown);
-    return()=>{el.removeEventListener("mousedown",onMousedown);el.removeEventListener("change",onChange_);el.removeEventListener("keydown",onKeydown);};
+    return()=>{el.removeEventListener("mousedown",onMousedown);el.removeEventListener("keydown",onKeydown);};
   },[]);
 
   const addChecklist=()=>{
     const item=makeClItem();
-    const cur=getClItem();
+    const sel=window.getSelection();
+    // find if inside existing cl-item
+    let cur=null,node=sel?.getRangeAt(0)?.startContainer;
+    while(node&&node!==ref.current){if(node.classList?.contains("cl-item")){cur=node;break;}node=node.parentElement;}
     if(cur)cur.after(item);
-    else{
-      const sel=window.getSelection();
-      if(sel?.rangeCount){const r=sel.getRangeAt(0);r.collapse(false);r.insertNode(item);r.setStartAfter(item);sel.removeAllRanges();sel.addRange(r);}
-      else ref.current.appendChild(item);
-    }
-    focusEnd(item);fire();
+    else if(sel?.rangeCount){const r=sel.getRangeAt(0);r.collapse(false);r.insertNode(item);r.setStartAfter(item);sel.removeAllRanges();sel.addRange(r);}
+    else ref.current.appendChild(item);
+    const t=item.querySelector(".cl-text");t.focus();
+    const r=document.createRange(),s=window.getSelection();r.selectNodeContents(t);r.collapse(false);s.removeAllRanges();s.addRange(r);
+    fire();
   };
 
   const T=({cmd,val,title,ch})=><button title={title} onMouseDown={e=>{e.preventDefault();exec(cmd,val);}}>{ch}</button>;

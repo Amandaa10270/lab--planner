@@ -470,11 +470,50 @@ function App(){
           </>)}
 
           {/* ══ DAILY NOTES ══ */}
-          {tab==="notes"&&<div className="card">
-            <strong style={{fontSize:15,display:"block",marginBottom:12}}>📝 Notes — {date}</strong>
-            <RTE value={notes[date]||""} onChange={v=>setNote(date,v)} placeholder="Daily notes, observations, thoughts..." minH={420}/>
-            <div style={{fontSize:11,color:"#94a3b8",marginTop:6}}>Auto-saved ✓</div>
-          </div>}
+          {tab==="notes"&&(<>
+            <div className="card">
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
+                <strong style={{fontSize:15}}>📝 Notes — {date}</strong>
+                <button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"5px 12px"}} onClick={()=>{
+                  const entries=Object.entries(notes).filter(([k,v])=>v&&!k.startsWith("mon_")&&!k.startsWith("fri_")).sort(([a],[b])=>b.localeCompare(a));
+                  if(!entries.length)return alert("No notes to export.");
+                  const txt=entries.map(([d,v])=>`=== ${d} ===\n${v.replace(/<[^>]+>/g,"")}\n`).join("\n");
+                  const a=document.createElement("a");a.href="data:text/plain;charset=utf-8,"+encodeURIComponent(txt);a.download="phd-daily-logs.txt";a.click();
+                }}>⬇ Export All Logs</button>
+              </div>
+              <RTE value={notes[date]||""} onChange={v=>setNote(date,v)} placeholder="Daily notes, observations, thoughts..." minH={320}/>
+              <div style={{fontSize:11,color:"#94a3b8",marginTop:6}}>Auto-saved to browser ✓</div>
+            </div>
+
+            {/* Past logs */}
+            {(()=>{
+              const past=Object.entries(notes)
+                .filter(([k,v])=>v&&k.match(/^\d{4}-\d{2}-\d{2}$/)&&k!==date)
+                .sort(([a],[b])=>b.localeCompare(a));
+              if(!past.length)return null;
+              return(
+                <div className="card">
+                  <div style={{fontWeight:700,fontSize:14,marginBottom:12,color:"#374151"}}>🗂 Past Log Entries ({past.length})</div>
+                  {past.map(([d,v])=>{
+                    const preview=v.replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,120);
+                    return(
+                      <div key={d} style={{borderRadius:9,border:"1px solid #e2e8f0",marginBottom:8,overflow:"hidden"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 13px",background:"#f8fafc",cursor:"pointer"}}
+                          onClick={()=>setDate(d)}>
+                          <div>
+                            <span style={{fontWeight:700,fontSize:13,color:"#1e3a5f"}}>{d}</span>
+                            <span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{new Date(d+"T12:00:00").toLocaleDateString("en",{weekday:"short"})}</span>
+                            <div style={{fontSize:12,color:"#64748b",marginTop:2}}>{preview}{preview.length===120?"…":""}</div>
+                          </div>
+                          <span style={{color:"#6366f1",fontSize:13,fontWeight:600,flexShrink:0,marginLeft:10}}>Open →</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </>)}
 
           {/* ══ PROTOCOLS ══ */}
           {tab==="protocols"&&(<>

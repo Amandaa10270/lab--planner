@@ -51,13 +51,15 @@ input,select,textarea,button{font-family:inherit;}
 .rte-bar button{background:none;border:none;border-radius:5px;padding:4px 6px;cursor:pointer;font-size:12px;color:#475569;line-height:1;font-family:inherit;}
 .rte-bar button:hover{background:#e2e8f0;}
 .rte-bar .sep{width:1px;background:#e2e8f0;margin:2px 3px;align-self:stretch;}
-.rte-body{min-height:120px;padding:10px 12px;outline:none;font-size:14px;line-height:1.75;background:white;overflow-y:auto;}
+.rte-body{min-height:120px;padding:10px 12px;outline:none;font-size:14px;line-height:1.75;background:white;overflow-x:hidden;overflow-y:auto;word-break:break-word;}
 .rte-body:focus{outline:none;}
 .rte-body ul{padding-left:20px;}.rte-body ol{padding-left:20px;}
-.rte-body .cl-item{display:flex;align-items:flex-start;gap:8px;margin:3px 0;padding:1px 0;}
-.rte-body .cl-item input[type=checkbox]{width:16px;height:16px;border-radius:50%;margin-top:2px;flex-shrink:0;cursor:pointer;accent-color:#6366f1;}
-.rte-body .cl-item span{flex:1;outline:none;min-width:20px;}
-.rte-body .cl-item.done span{text-decoration:line-through;color:#94a3b8;}
+.rte-body .cl-item{display:flex;align-items:flex-start;gap:6px;margin:3px 0;padding:1px 0;}
+.rte-body .cl-item input[type=checkbox]{width:16px;height:16px;margin-top:3px;flex-shrink:0;cursor:pointer;accent-color:#6366f1;}
+.rte-body .cl-item span.cl-text{flex:1;outline:none;min-width:20px;}
+.rte-body .cl-item.done span.cl-text{text-decoration:line-through;color:#94a3b8;}
+.rte-body .cl-item .cl-del{background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:14px;padding:0 2px;line-height:1;flex-shrink:0;margin-top:2px;}
+.rte-body .cl-item .cl-del:hover{color:#ef4444;}
 .rte-body:empty:before{content:attr(data-ph);color:#94a3b8;pointer-events:none;display:block;}
 
 /* Misc */
@@ -99,27 +101,64 @@ function RTE({value,onChange,placeholder,minH=120}){
 
   const addChecklist=()=>{
     ref.current?.focus();
-    const id="cl_"+Date.now();
-    const html=`<div class="cl-item" data-cl="1"><input type="checkbox" id="${id}" /><span contenteditable="true">&nbsp;</span></div>`;
-    document.execCommand("insertHTML",false,html);
-    // attach checkbox listener after insertion
-    setTimeout(()=>{
-      const inp=ref.current?.querySelector(`#${id}`);
-      if(inp)inp.addEventListener("change",()=>{
-        inp.closest(".cl-item")?.classList.toggle("done",inp.checked);
-        fire();
-      });
-      fire();
-    },0);
+    // Create item as DOM node so we can attach listeners directly
+    const item=document.createElement("div");
+    item.className="cl-item";
+    item.setAttribute("data-cl","1");
+
+    const cb=document.createElement("input");
+    cb.type="checkbox";
+    cb.addEventListener("change",()=>{item.classList.toggle("done",cb.checked);fire();});
+
+    const span=document.createElement("span");
+    span.className="cl-text";
+    span.contentEditable="true";
+    span.innerHTML="&nbsp;";
+    span.addEventListener("keydown",e=>{
+      if(e.key==="Backspace"&&span.innerText.trim()===""){
+        e.preventDefault();item.remove();fire();
+      }
+    });
+
+    const del=document.createElement("button");
+    del.className="cl-del";
+    del.innerHTML="✕";
+    del.title="Remove";
+    del.addEventListener("mousedown",e=>{e.preventDefault();item.remove();fire();});
+
+    item.appendChild(cb);
+    item.appendChild(span);
+    item.appendChild(del);
+
+    const sel=window.getSelection();
+    if(sel&&sel.rangeCount){
+      const range=sel.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(item);
+      range.setStartAfter(item);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } else {
+      ref.current.appendChild(item);
+    }
+    span.focus();
+    fire();
   };
 
-  // Re-attach checkbox listeners when value loads
+  // Re-attach listeners on load (for saved HTML)
   useEffect(()=>{
     if(!ref.current)return;
-    ref.current.querySelectorAll(".cl-item input[type=checkbox]").forEach(inp=>{
-      inp.removeEventListener("change",inp._handler||null);
-      inp._handler=()=>{inp.closest(".cl-item")?.classList.toggle("done",inp.checked);fire();};
-      inp.addEventListener("change",inp._handler);
+    ref.current.querySelectorAll(".cl-item").forEach(item=>{
+      const cb=item.querySelector("input[type=checkbox]");
+      const del=item.querySelector(".cl-del");
+      if(cb&&!cb._bound){cb._bound=true;cb.addEventListener("change",()=>{item.classList.toggle("done",cb.checked);fire();});}
+      if(del&&!del._bound){del._bound=true;del.addEventListener("mousedown",e=>{e.preventDefault();item.remove();fire();});}
+      // backspace to delete empty item
+      const sp2=item.querySelector("span.cl-text");
+      if(sp2&&!sp2._kbound){sp2._kbound=true;sp2.addEventListener("keydown",e=>{if(e.key==="Backspace"&&sp2.innerText.trim()===""){e.preventDefault();item.remove();fire();}});}
+      // ensure cl-text class
+      const sp=item.querySelector("span:not(.cl-del)");
+      if(sp)sp.className="cl-text";
     });
   });
 

@@ -1,173 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Yashi's PhD Planner</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body, #root { height: 100%; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; display: flex; flex-direction: column; }
-  input, select, textarea, button { font-family: inherit; }
-  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body,#root{height:100%;overflow:hidden;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;}
+input,select,textarea,button{font-family:inherit;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
 
-  /* Rich text editor */
-  .rte-toolbar { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-bottom: none; border-radius: 8px 8px 0 0; }
-  .rte-toolbar button { background: none; border: none; border-radius: 5px; padding: 4px 7px; cursor: pointer; font-size: 13px; color: #475569; line-height: 1; }
-  .rte-toolbar button:hover { background: #e2e8f0; }
-  .rte-toolbar button.active { background: #e0e7ff; color: #4338ca; }
-  .rte-toolbar .sep { width: 1px; background: #e2e8f0; margin: 2px 3px; }
-  .rte-body { min-height: 120px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 0 0 8px 8px; outline: none; font-size: 14px; line-height: 1.7; background: white; overflow-y: auto; }
-  .rte-body:focus { border-color: #a5b4fc; }
-  .rte-body ul { padding-left: 20px; } .rte-body ol { padding-left: 20px; }
-  .rte-body .checklist-item { display: flex; align-items: flex-start; gap: 6px; margin: 2px 0; }
-  .rte-body .checklist-item input[type=checkbox] { margin-top: 3px; }
+/* Layout */
+#app{display:flex;height:100vh;overflow:hidden;}
+#sidebar{width:230px;min-width:230px;background:linear-gradient(180deg,#1e3a5f 0%,#1e2d4a 100%);display:flex;flex-direction:column;overflow-y:auto;transition:width .2s;}
+#sidebar.collapsed{width:56px;min-width:56px;}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#topbar{flex-shrink:0;background:white;border-bottom:1px solid #e2e8f0;padding:10px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+#content{flex:1;overflow-y:auto;padding:16px 20px 32px;}
 
-  /* Layout */
-  #layout { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-  #header { flex-shrink: 0; }
-  #tabs  { flex-shrink: 0; padding: 10px 20px 0; display: flex; gap: 6px; flex-wrap: wrap; background: #f1f5f9; }
-  #content { flex: 1; overflow-y: auto; padding: 12px 20px 24px; }
+/* Sidebar styles */
+.sb-logo{padding:18px 16px 12px;color:white;}
+.sb-logo .title{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;}
+.sb-logo .sub{font-size:11px;opacity:.5;margin-top:2px;white-space:nowrap;overflow:hidden;}
+.sb-section{padding:6px 10px 2px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;overflow:hidden;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;color:rgba(255,255,255,0.65);border-radius:8px;margin:1px 6px;transition:all .15s;white-space:nowrap;overflow:hidden;}
+.sb-item:hover{background:rgba(255,255,255,0.08);color:white;}
+.sb-item.active{background:rgba(99,102,241,0.35);color:white;}
+.sb-item .icon{font-size:16px;flex-shrink:0;width:22px;text-align:center;}
+.sb-item .label{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;}
+.sb-divider{height:1px;background:rgba(255,255,255,0.08);margin:6px 14px;}
+.sb-toggle{margin:auto 8px 12px;padding:8px;background:rgba(255,255,255,0.07);border:none;border-radius:8px;color:rgba(255,255,255,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.sb-toggle:hover{background:rgba(255,255,255,0.12);color:white;}
+#sidebar.collapsed .sb-logo .title,
+#sidebar.collapsed .sb-logo .sub,
+#sidebar.collapsed .sb-section,
+#sidebar.collapsed .sb-item .label,
+#sidebar.collapsed .sb-divider{display:none;}
+#sidebar.collapsed .sb-item{justify-content:center;padding:9px;}
+
+/* Cards */
+.card{background:white;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;}
+
+/* Rich Text Editor */
+.rte-wrap{border:1px solid #e2e8f0;border-radius:9px;overflow:hidden;}
+.rte-bar{display:flex;flex-wrap:wrap;gap:2px;padding:5px 7px;background:#f8fafc;border-bottom:1px solid #e2e8f0;}
+.rte-bar button{background:none;border:none;border-radius:5px;padding:4px 6px;cursor:pointer;font-size:12px;color:#475569;line-height:1;font-family:inherit;}
+.rte-bar button:hover{background:#e2e8f0;}
+.rte-bar .sep{width:1px;background:#e2e8f0;margin:2px 3px;align-self:stretch;}
+.rte-body{min-height:120px;padding:10px 12px;outline:none;font-size:14px;line-height:1.75;background:white;overflow-y:auto;}
+.rte-body:focus{outline:none;}
+.rte-body ul{padding-left:20px;}.rte-body ol{padding-left:20px;}
+.rte-body .cl-item{display:flex;align-items:flex-start;gap:8px;margin:3px 0;padding:1px 0;}
+.rte-body .cl-item input[type=checkbox]{width:16px;height:16px;border-radius:50%;margin-top:2px;flex-shrink:0;cursor:pointer;accent-color:#6366f1;}
+.rte-body .cl-item span{flex:1;outline:none;min-width:20px;}
+.rte-body .cl-item.done span{text-decoration:line-through;color:#94a3b8;}
+.rte-body:empty:before{content:attr(data-ph);color:#94a3b8;pointer-events:none;display:block;}
+
+/* Misc */
+.btn{border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:600;font-size:13px;color:white;}
+.inp{display:block;width:100%;padding:8px 11px;border-radius:8px;border:1px solid #e2e8f0;font-size:14px;margin-bottom:10px;outline:none;}
+.lbl{display:block;margin-bottom:4px;font-weight:600;font-size:12px;color:#64748b;}
+.tag{border-radius:5px;padding:2px 9px;font-size:11px;font-weight:700;display:inline-block;color:white;}
+.pill{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:3px 9px;font-size:11px;color:#475569;}
+
+@media(max-width:600px){#sidebar{width:52px;min-width:52px;}#sidebar .sb-logo .title,#sidebar .sb-logo .sub,#sidebar .sb-section,#sidebar .sb-item .label,#sidebar .sb-divider{display:none;}#sidebar .sb-item{justify-content:center;padding:9px;}#content{padding:12px 12px 28px;}}
 </style>
 </head>
-<body>
-<div id="root"></div>
+<body><div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
-
-const fmt     = d => d.toISOString().split("T")[0];
-const parse   = s => new Date(s + "T12:00:00");
-const addDays = (s, n) => { const d = parse(s); d.setDate(d.getDate()+n); return fmt(d); };
-const diff    = (a, b) => Math.round((parse(b) - parse(a)) / 86400000);
-const today   = () => fmt(new Date());
-const LS = {
-  get: (k, def) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } },
-  set: (k, v)   => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
-};
+const {useState,useEffect,useRef,useCallback}=React;
+const fmt=d=>d.toISOString().split("T")[0];
+const parse=s=>new Date(s+"T12:00:00");
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return fmt(d);};
+const diff=(a,b)=>Math.round((parse(b)-parse(a))/86400000);
+const today=()=>fmt(new Date());
+const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}};
 
 // Protocols
-const getCellMedia  = d => ({0:"Ri + E8",1:"E8",2:"E8F",3:"E8F"}[d] ?? null);
-const getNormalTask = d => {
-  const m = {"-3":"Seeding","-2":"E8F","-1":"E8F","0":"CHIR","1":"-I","2":"IWP4","4":"-I"};
-  if (m[d]!==undefined) return m[d];
-  if (d>=6&&d<=21&&(d-6)%2===0) return "+C (media change)";
-  return null;
-};
-const getVascTask = d => {
-  const m = {"-3":"Seeding","-2":"E8F","-1":"E8F","0":"CHIR","1":"-I + BWP4 + FGF2","2":"IWP4 + BWP4 + FGF2","4":"-I + BWP4 + FGF2","5":"FGF2 + VEGF + +C"};
-  if (m[d]!==undefined) return m[d];
-  if (d>=7&&d<=21&&(d-7)%2===0) return "+C + FGF2 + VEGF + A8301 + SB431542";
-  return null;
-};
+const getCellMedia=d=>({0:"Ri + E8",1:"E8",2:"E8F",3:"E8F"}[d]??null);
+const getNormalTask=d=>{const m={"-3":"Seeding","-2":"E8F","-1":"E8F","0":"CHIR","1":"-I","2":"IWP4","4":"-I"};if(m[d]!==undefined)return m[d];if(d>=6&&d<=21&&(d-6)%2===0)return"+C (media change)";return null;};
+const getVascTask=d=>{const m={"-3":"Seeding","-2":"E8F","-1":"E8F","0":"CHIR","1":"-I + BWP4 + FGF2","2":"IWP4 + BWP4 + FGF2","4":"-I + BWP4 + FGF2","5":"FGF2 + VEGF + +C"};if(m[d]!==undefined)return m[d];if(d>=7&&d<=21&&(d-7)%2===0)return"+C + FGF2 + VEGF + A8301 + SB431542";return null;};
 
-const TASK_TYPES  = [{id:"coding",label:"💻 Coding",color:"#6366f1"},{id:"ta",label:"📚 TA Work",color:"#f59e0b"},{id:"course",label:"🎓 Course",color:"#10b981"},{id:"meeting",label:"👥 Meeting",color:"#3b82f6"},{id:"other",label:"📌 Other",color:"#8b5cf6"}];
-const EVENT_CATS  = [{id:"conference",label:"🏛 Conference",color:"#6366f1"},{id:"poster",label:"🖼 Poster",color:"#f59e0b"},{id:"paper",label:"📄 Paper",color:"#10b981"},{id:"admin",label:"📋 Admin",color:"#3b82f6"},{id:"other",label:"📌 Other",color:"#8b5cf6"}];
+const TASK_TYPES=[{id:"coding",label:"💻 Coding",color:"#6366f1"},{id:"ta",label:"📚 TA Work",color:"#f59e0b"},{id:"course",label:"🎓 Course",color:"#10b981"},{id:"meeting",label:"👥 Meeting",color:"#3b82f6"},{id:"other",label:"📌 Other",color:"#8b5cf6"}];
+const EVENT_CATS=[{id:"conference",label:"🏛 Conference",color:"#6366f1"},{id:"poster",label:"🖼 Poster",color:"#f59e0b"},{id:"paper",label:"📄 Paper",color:"#10b981"},{id:"admin",label:"📋 Admin",color:"#3b82f6"},{id:"other",label:"📌 Other",color:"#8b5cf6"}];
+const HIGHLIGHTS=["#fef08a","#bbf7d0","#bfdbfe","#fecaca","#e9d5ff","#fed7aa"];
 
-const css = {
-  card: { background:"white", borderRadius:12, padding:16, boxShadow:"0 2px 8px rgba(0,0,0,0.07)", marginBottom:12 },
-  btn:  bg => ({ background:bg, color:"white", border:"none", borderRadius:8, padding:"7px 14px", cursor:"pointer", fontWeight:600, fontSize:13 }),
-  inp:  { display:"block", width:"100%", padding:"8px 11px", borderRadius:8, border:"1px solid #e2e8f0", fontSize:14, marginBottom:10, outline:"none" },
-  lbl:  { display:"block", marginBottom:4, fontWeight:600, fontSize:12, color:"#64748b" },
-  tag:  c => ({ background:c, color:"white", borderRadius:5, padding:"2px 8px", fontSize:11, fontWeight:700, display:"inline-block" }),
-  pill: { background:"#f1f5f9", border:"1px solid #e2e8f0", borderRadius:6, padding:"3px 9px", fontSize:11, color:"#475569" },
-};
+// ── Rich Text Editor ─────────────────────────────────────────────────
+function RTE({value,onChange,placeholder,minH=120}){
+  const ref=useRef(null);
+  const skip=useRef(false);
+  useEffect(()=>{if(ref.current&&!skip.current)ref.current.innerHTML=value||"";skip.current=false;},[value]);
+  const exec=(cmd,val=null)=>{document.execCommand(cmd,false,val);ref.current?.focus();};
+  const fire=()=>{skip.current=true;onChange(ref.current.innerHTML);};
 
-// ── Rich Text Editor ─────────────────────────────────────────────────────────
-function RichEditor({ value, onChange, placeholder, minHeight=120 }) {
-  const ref = useRef(null);
-  const skipSync = useRef(false);
-
-  useEffect(() => {
-    if (ref.current && !skipSync.current) {
-      ref.current.innerHTML = value || "";
-    }
-    skipSync.current = false;
-  }, [value]);
-
-  const exec = (cmd, val=null) => { document.execCommand(cmd, false, val); ref.current.focus(); };
-
-  const handleInput = () => {
-    skipSync.current = true;
-    onChange(ref.current.innerHTML);
+  const addChecklist=()=>{
+    ref.current?.focus();
+    const id="cl_"+Date.now();
+    const html=`<div class="cl-item" data-cl="1"><input type="checkbox" id="${id}" /><span contenteditable="true">&nbsp;</span></div>`;
+    document.execCommand("insertHTML",false,html);
+    // attach checkbox listener after insertion
+    setTimeout(()=>{
+      const inp=ref.current?.querySelector(`#${id}`);
+      if(inp)inp.addEventListener("change",()=>{
+        inp.closest(".cl-item")?.classList.toggle("done",inp.checked);
+        fire();
+      });
+      fire();
+    },0);
   };
 
-  const insertChecklist = () => {
-    const div = document.createElement("div");
-    div.className = "checklist-item";
-    div.contentEditable = "false";
-    div.innerHTML = `<input type="checkbox" /><span contenteditable="true" style="flex:1;outline:none">Task</span>`;
-    const sel = window.getSelection();
-    if (sel.rangeCount) {
-      const range = sel.getRangeAt(0);
-      range.deleteContents();
-      range.insertNode(div);
-      range.setStartAfter(div);
-      sel.removeAllRanges();
-      sel.addRange(range);
-    } else {
-      ref.current.appendChild(div);
-    }
-    handleInput();
-  };
+  // Re-attach checkbox listeners when value loads
+  useEffect(()=>{
+    if(!ref.current)return;
+    ref.current.querySelectorAll(".cl-item input[type=checkbox]").forEach(inp=>{
+      inp.removeEventListener("change",inp._handler||null);
+      inp._handler=()=>{inp.closest(".cl-item")?.classList.toggle("done",inp.checked);fire();};
+      inp.addEventListener("change",inp._handler);
+    });
+  });
 
-  const promptLink = () => {
-    const url = window.prompt("Enter URL:", "https://");
-    if (url) exec("createLink", url);
-  };
-
-  const COLORS = ["#fef08a","#bbf7d0","#bfdbfe","#fecaca","#e9d5ff","#fed7aa"];
-
-  const TB = ({ cmd, val, title, children }) => (
-    <button title={title} onMouseDown={e=>{ e.preventDefault(); exec(cmd,val); }}>{children}</button>
-  );
-
-  return (
-    <div>
-      <div className="rte-toolbar">
-        <TB cmd="bold"   title="Bold">      <b>B</b></TB>
-        <TB cmd="italic" title="Italic">    <i>I</i></TB>
-        <TB cmd="underline" title="Underline"><u>U</u></TB>
-        <TB cmd="strikeThrough" title="Strikethrough"><s>S</s></TB>
-        <TB cmd="superscript" title="Superscript">x²</TB>
-        <TB cmd="subscript"   title="Subscript">x₂</TB>
+  const T=({cmd,val,title,ch})=><button title={title} onMouseDown={e=>{e.preventDefault();exec(cmd,val);}}>{ch}</button>;
+  return(
+    <div className="rte-wrap">
+      <div className="rte-bar">
+        <T cmd="bold"         title="Bold"          ch={<b>B</b>}/>
+        <T cmd="italic"       title="Italic"        ch={<i>I</i>}/>
+        <T cmd="underline"    title="Underline"     ch={<u>U</u>}/>
+        <T cmd="strikeThrough"title="Strikethrough" ch={<s>S</s>}/>
+        <T cmd="superscript"  title="Superscript"   ch="x²"/>
+        <T cmd="subscript"    title="Subscript"     ch="x₂"/>
         <div className="sep"/>
-        {COLORS.map(c=>(
-          <button key={c} title="Highlight" onMouseDown={e=>{e.preventDefault();exec("hiliteColor",c);}}
-            style={{background:c,border:"1px solid #e2e8f0",borderRadius:4,width:18,height:18,padding:0,cursor:"pointer"}} />
-        ))}
+        {HIGHLIGHTS.map(c=><button key={c} title="Highlight" onMouseDown={e=>{e.preventDefault();exec("hiliteColor",c);}} style={{background:c,border:"1px solid #e2e8f0",borderRadius:4,width:17,height:17,padding:0,cursor:"pointer"}}/>)}
         <div className="sep"/>
-        <TB cmd="insertUnorderedList" title="Bullet list">≡</TB>
-        <TB cmd="insertOrderedList"   title="Numbered list">1≡</TB>
-        <button title="Checklist" onMouseDown={e=>{e.preventDefault();insertChecklist();}}>☑</button>
+        <T cmd="insertUnorderedList" title="Bullet list"   ch="• —"/>
+        <T cmd="insertOrderedList"   title="Numbered list" ch="1.—"/>
+        <button title="Checklist" onMouseDown={e=>{e.preventDefault();addChecklist();}}>☑</button>
         <div className="sep"/>
-        <TB cmd="justifyLeft"   title="Left align">  ⬛︎</TB>
-        <TB cmd="justifyCenter" title="Center align"> ≡</TB>
-        <TB cmd="justifyRight"  title="Right align">  ⬛</TB>
-        <TB cmd="indent"        title="Indent">  →</TB>
-        <TB cmd="outdent"       title="Outdent"> ←</TB>
+        <T cmd="justifyLeft"   title="Left"   ch="⫷"/>
+        <T cmd="justifyCenter" title="Center" ch="≡"/>
+        <T cmd="justifyRight"  title="Right"  ch="⫸"/>
+        <T cmd="indent"        title="Indent" ch="→"/>
+        <T cmd="outdent"       title="Outdent"ch="←"/>
         <div className="sep"/>
-        <button title="Insert link" onMouseDown={e=>{e.preventDefault();promptLink();}}>🔗</button>
-        <TB cmd="removeFormat" title="Clear formatting">✕</TB>
+        <button title="Link" onMouseDown={e=>{e.preventDefault();const u=prompt("URL:","https://");if(u)exec("createLink",u);}}>🔗</button>
+        <T cmd="removeFormat"  title="Clear formatting" ch="✕"/>
       </div>
-      <div
-        ref={ref}
-        className="rte-body"
-        contentEditable
-        suppressContentEditableWarning
-        onInput={handleInput}
-        style={{minHeight}}
-        data-placeholder={placeholder}
-      />
-      <style>{`.rte-body:empty:before{content:attr(data-placeholder);color:#94a3b8;pointer-events:none;display:block;}`}</style>
+      <div ref={ref} className="rte-body" contentEditable suppressContentEditableWarning onInput={fire} style={{minHeight:minH}} data-ph={placeholder}/>
     </div>
   );
 }
 
-function Modal({ title, onClose, children }) {
-  return (
+function Modal({title,onClose,children}){
+  return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999}}>
       <div style={{background:"white",borderRadius:16,padding:24,width:"min(460px,94vw)",maxHeight:"90vh",overflowY:"auto"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
@@ -180,387 +168,435 @@ function Modal({ title, onClose, children }) {
   );
 }
 
-// ── Main App ──────────────────────────────────────────────────────────────────
-function App() {
-  const [date,    setDate]    = useState(today());
-  const [tab,     setTab]     = useState("planner");
-  const [cells,   setCells]   = useState(() => LS.get("phd_cells",   []));
-  const [orgs,    setOrgs]    = useState(() => LS.get("phd_orgs",    []));
-  const [ptasks,  setPtasks]  = useState(() => LS.get("phd_ptasks",  {}));
-  const [notes,   setNotes]   = useState(() => LS.get("phd_notes",   {}));
-  const [events,  setEvents]  = useState(() => LS.get("phd_events",  []));
-  const [meeting, setMeeting] = useState(() => LS.get("phd_meeting", {myTurnFriday:false}));
-  const [modal,   setModal]   = useState(null);
-  const [nc, setNc] = useState({name:"",passage:0,passageDate:""});
-  const [no, setNo] = useState({name:"",type:"normal",format:"gel",seedDate:""});
-  const [nt, setNt] = useState({type:"coding",title:"",time:"09:00",duration:60,detail:""});
-  const [ne, setNe] = useState({cat:"poster",title:"",deadline:"",reminderDays:7,detail:""});
+// ── Sidebar ───────────────────────────────────────────────────────────
+const NAV=[
+  {id:"planner", icon:"📋", label:"Daily Plan",  section:"MAIN"},
+  {id:"meetings",icon:"🧪", label:"Meetings"},
+  {id:"events",  icon:"🎯", label:"Deadlines"},
+  {id:"cells",   icon:"🧫", label:"Cell Culture"},
+  {id:"orgs",    icon:"🫀", label:"Organoids"},
+  {id:"notes",   icon:"📝", label:"Daily Notes", section:"NOTES"},
+  {id:"protocols",icon:"📂",label:"Protocols",   section:"LIBRARY"},
+  {id:"library", icon:"📚", label:"Notes Library"},
+];
 
-  useEffect(()=>LS.set("phd_cells",  cells),  [cells]);
-  useEffect(()=>LS.set("phd_orgs",   orgs),   [orgs]);
-  useEffect(()=>LS.set("phd_ptasks", ptasks), [ptasks]);
-  useEffect(()=>LS.set("phd_notes",  notes),  [notes]);
-  useEffect(()=>LS.set("phd_events", events), [events]);
+function Sidebar({tab,setTab,collapsed,setCollapsed,protCount,libCount}){
+  let lastSection="";
+  return(
+    <div id="sidebar" className={collapsed?"collapsed":""}>
+      <div className="sb-logo">
+        <div className="title">🎓 Yashi's PhD</div>
+        <div className="sub">Lab · Life · Research</div>
+      </div>
+      {NAV.map(n=>{
+        const showSec=n.section&&n.section!==lastSection;
+        if(n.section)lastSection=n.section;
+        const badge=n.id==="protocols"?protCount:n.id==="library"?libCount:0;
+        return(
+          <React.Fragment key={n.id}>
+            {showSec&&<div className="sb-section">{n.section}</div>}
+            <div className={`sb-item${tab===n.id?" active":""}`} onClick={()=>setTab(n.id)}>
+              <span className="icon">{n.icon}</span>
+              <span className="label">{n.label}{badge>0?<span style={{marginLeft:6,background:"rgba(255,255,255,0.2)",borderRadius:10,padding:"1px 6px",fontSize:10}}>{badge}</span>:null}</span>
+            </div>
+          </React.Fragment>
+        );
+      })}
+      <div style={{flex:1}}/>
+      <div className="sb-divider"/>
+      <button className="sb-toggle" onClick={()=>setCollapsed(!collapsed)} title={collapsed?"Expand":"Collapse"}>
+        {collapsed?"▶":"◀"}
+      </button>
+    </div>
+  );
+}
+
+// ── Main App ──────────────────────────────────────────────────────────
+function App(){
+  const [tab,setTab]=useState("planner");
+  const [collapsed,setCollapsed]=useState(false);
+  const [date,setDate]=useState(today());
+  const [cells,setCells]=useState(()=>LS.get("phd_cells",[]));
+  const [orgs,setOrgs]=useState(()=>LS.get("phd_orgs",[]));
+  const [ptasks,setPtasks]=useState(()=>LS.get("phd_ptasks",{}));
+  const [notes,setNotes]=useState(()=>LS.get("phd_notes",{}));
+  const [events,setEvents]=useState(()=>LS.get("phd_events",[]));
+  const [meeting,setMeeting]=useState(()=>LS.get("phd_meeting",{myTurnFriday:false}));
+  const [protocols,setProtocols]=useState(()=>LS.get("phd_protocols",[]));
+  const [libNotes,setLibNotes]=useState(()=>LS.get("phd_lib",[]));
+  const [modal,setModal]=useState(null);
+  const [nc,setNc]=useState({name:"",passage:0,passageDate:""});
+  const [no,setNo]=useState({name:"",type:"normal",format:"gel",seedDate:""});
+  const [nt,setNt]=useState({type:"coding",title:"",time:"09:00",duration:60,detail:""});
+  const [ne,setNe]=useState({cat:"poster",title:"",deadline:"",reminderDays:7,detail:""});
+  const [np,setNp]=useState({title:"",category:"",content:""});
+  const [nl,setNl]=useState({title:"",tag:"",content:""});
+  const [expandProt,setExpandProt]=useState(null);
+  const [expandLib,setExpandLib]=useState(null);
+
+  useEffect(()=>LS.set("phd_cells",cells),[cells]);
+  useEffect(()=>LS.set("phd_orgs",orgs),[orgs]);
+  useEffect(()=>LS.set("phd_ptasks",ptasks),[ptasks]);
+  useEffect(()=>LS.set("phd_notes",notes),[notes]);
+  useEffect(()=>LS.set("phd_events",events),[events]);
   useEffect(()=>LS.set("phd_meeting",meeting),[meeting]);
+  useEffect(()=>LS.set("phd_protocols",protocols),[protocols]);
+  useEffect(()=>LS.set("phd_lib",libNotes),[libNotes]);
 
-  const navDay = n => setDate(addDays(date, n));
-  const dow = parse(date).getDay();
+  const navDay=n=>setDate(addDays(date,n));
+  const dow=parse(date).getDay();
+  const setNote=(k,v)=>setNotes(n=>({...n,[k]:v}));
 
-  const getLabTasks = d => {
-    const out = [];
-    cells.forEach(c => {
-      const day=diff(c.passageDate,d), media=getCellMedia(day);
-      if (day>=4) out.push({cat:"cell",name:c.name,day,label:`Passage required! P${c.passage} D${day}`,detail:`${c.name} needs passaging (D${day})`,urgent:true});
-      else if (media) out.push({cat:"cell",name:c.name,day,label:`Media: ${media}`,detail:`${c.name} P${c.passage} D${day} → ${media}`,urgent:false});
-    });
-    orgs.forEach(o => {
-      const day=diff(o.seedDate,d)-3;
-      const task=(o.type==="normal"?getNormalTask:getVascTask)(day);
-      if (task) out.push({cat:"org",name:o.name,day,label:task,detail:`${o.name} D${day} → ${task}`,urgent:false});
-    });
+  const getLabTasks=d=>{
+    const out=[];
+    cells.forEach(c=>{const day=diff(c.passageDate,d),media=getCellMedia(day);if(day>=4)out.push({cat:"cell",name:c.name,day,label:`Passage required! P${c.passage} D${day}`,detail:`${c.name} needs passaging (D${day})`,urgent:true});else if(media)out.push({cat:"cell",name:c.name,day,label:`Media: ${media}`,detail:`${c.name} P${c.passage} D${day} → ${media}`,urgent:false});});
+    orgs.forEach(o=>{const day=diff(o.seedDate,d)-3,task=(o.type==="normal"?getNormalTask:getVascTask)(day);if(task)out.push({cat:"org",name:o.name,day,label:task,detail:`${o.name} D${day} → ${task}`,urgent:false});});
     return out;
   };
 
-  const labToday    = getLabTasks(date);
-  const labTomorrow = getLabTasks(addDays(date,1));
-  const personal    = [...(ptasks[date]||[])].sort((a,b)=>a.time.localeCompare(b.time));
+  const labToday=getLabTasks(date),labTomorrow=getLabTasks(addDays(date,1));
+  const personal=[...(ptasks[date]||[])].sort((a,b)=>a.time.localeCompare(b.time));
+  const activeEvents=events.filter(e=>!e.archived).map(e=>({...e,daysLeft:diff(today(),e.deadline)})).sort((a,b)=>a.daysLeft-b.daysLeft);
+  const archivedEvents=events.filter(e=>e.archived);
+  const eventReminders=activeEvents.filter(e=>e.daysLeft>=0&&e.daysLeft<=e.reminderDays);
 
-  const activeEvents   = events.filter(e=>!e.archived).map(e=>({...e,daysLeft:diff(today(),e.deadline)})).sort((a,b)=>a.daysLeft-b.daysLeft);
-  const archivedEvents = events.filter(e=>e.archived);
-  const eventReminders = activeEvents.filter(e=>e.daysLeft>=0&&e.daysLeft<=e.reminderDays);
-
-  const setNote = (k, v) => setNotes(n => ({...n, [k]:v}));
-
-  const exportICS = () => {
-    const evts = [];
+  const exportICS=()=>{
+    const evts=[];
     labToday.forEach((t,i)=>{const hr=String(9+i).padStart(2,"0"),ds=date.replace(/-/g,"");evts.push(`BEGIN:VEVENT\nSUMMARY:[Lab] ${t.name} – ${t.label}\nDTSTART:${ds}T${hr}0000\nDTEND:${ds}T${hr}3000\nEND:VEVENT`);});
-    personal.forEach(t=>{const [hh,mm]=t.time.split(":"),sm=parseInt(hh)*60+parseInt(mm),em=sm+(t.duration||60),ds=date.replace(/-/g,""),eH=String(Math.floor(em/60)).padStart(2,"0"),eM=String(em%60).padStart(2,"0");const tp=TASK_TYPES.find(x=>x.id===t.type);evts.push(`BEGIN:VEVENT\nSUMMARY:${tp?.label||""} ${t.title}\nDTSTART:${ds}T${hh}${mm}00\nDTEND:${ds}T${eH}${eM}00\nEND:VEVENT`);});
-    if(!evts.length) return alert("No tasks to export.");
+    personal.forEach(t=>{const[hh,mm]=t.time.split(":"),sm=parseInt(hh)*60+parseInt(mm),em=sm+(t.duration||60),ds=date.replace(/-/g,""),eH=String(Math.floor(em/60)).padStart(2,"0"),eM=String(em%60).padStart(2,"0"),tp=TASK_TYPES.find(x=>x.id===t.type);evts.push(`BEGIN:VEVENT\nSUMMARY:${tp?.label||""} ${t.title}\nDTSTART:${ds}T${hh}${mm}00\nDTEND:${ds}T${eH}${eM}00\nEND:VEVENT`);});
+    if(!evts.length)return alert("No tasks to export.");
     const a=document.createElement("a");a.href="data:text/calendar;charset=utf-8,"+encodeURIComponent(`BEGIN:VCALENDAR\nVERSION:2.0\n${evts.join("\n")}\nEND:VCALENDAR`);a.download=`phd-${date}.ics`;a.click();
   };
 
-  const TABS=[["planner","📋 Daily"],["meetings","🧪 Meetings"],["events","🎯 Events"],["cells","🧫 Cells"],["orgs","🫀 Organoids"],["notes","📝 Notes"]];
+  const tabLabel=NAV.find(n=>n.id===tab);
 
-  return (
-    <div id="layout">
-      {/* ── Header ── */}
-      <div id="header" style={{background:"linear-gradient(135deg,#1e3a5f,#6366f1)",padding:"14px 20px",color:"white"}}>
-        <div style={{fontWeight:800,fontSize:22,marginBottom:2}}>🎓 Yashi's PhD Planner</div>
-        <div style={{fontSize:12,opacity:.7,marginBottom:10}}>Lab · Meetings · Deadlines · Life</div>
-        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-          <button onClick={()=>navDay(-1)} style={{background:"rgba(255,255,255,0.2)",border:"1px solid rgba(255,255,255,0.3)",color:"white",borderRadius:7,padding:"5px 12px",cursor:"pointer",fontWeight:700}}>◀</button>
-          <input type="date" value={date} onChange={e=>setDate(e.target.value)}
-            style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.4)",color:"white",borderRadius:7,padding:"5px 11px",fontSize:14}} />
-          <button onClick={()=>navDay(1)} style={{background:"rgba(255,255,255,0.2)",border:"1px solid rgba(255,255,255,0.3)",color:"white",borderRadius:7,padding:"5px 12px",cursor:"pointer",fontWeight:700}}>▶</button>
-          <button onClick={()=>setDate(today())} style={{background:"rgba(255,255,255,0.2)",border:"1px solid rgba(255,255,255,0.3)",color:"white",borderRadius:7,padding:"5px 11px",cursor:"pointer",fontSize:12}}>Today</button>
-          <button onClick={exportICS} style={{background:"rgba(255,255,255,0.92)",border:"none",color:"#1e3a5f",borderRadius:7,padding:"5px 13px",cursor:"pointer",fontWeight:700,fontSize:12,marginLeft:"auto"}}>📅 Export .ics</button>
+  return(
+    <div id="app">
+      <Sidebar tab={tab} setTab={setTab} collapsed={collapsed} setCollapsed={setCollapsed} protCount={protocols.length} libCount={libNotes.length}/>
+
+      <div id="main">
+        {/* Topbar */}
+        <div id="topbar">
+          <span style={{fontWeight:700,fontSize:16,color:"#1e3a5f"}}>{tabLabel?.icon} {tabLabel?.label}</span>
+          {(tab==="planner"||tab==="notes")&&<>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:8}}>
+              <button onClick={()=>navDay(-1)} style={{background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:7,padding:"4px 10px",cursor:"pointer",fontWeight:700}}>◀</button>
+              <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:7,padding:"4px 10px",fontSize:14,outline:"none"}}/>
+              <button onClick={()=>navDay(1)} style={{background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:7,padding:"4px 10px",cursor:"pointer",fontWeight:700}}>▶</button>
+              <button onClick={()=>setDate(today())} style={{background:"#6366f1",color:"white",border:"none",borderRadius:7,padding:"4px 10px",cursor:"pointer",fontSize:12,fontWeight:600}}>Today</button>
+            </div>
+            <button onClick={exportICS} style={{marginLeft:"auto",background:"#1e3a5f",color:"white",border:"none",borderRadius:7,padding:"5px 13px",cursor:"pointer",fontWeight:700,fontSize:12}}>📅 Export .ics</button>
+          </>}
+          {/* Deadline banner */}
+          {eventReminders.length>0&&<div style={{width:"100%",marginTop:6,background:"#fef3c7",border:"1px solid #fcd34d",borderRadius:8,padding:"6px 10px"}}>
+            {eventReminders.map(e=><span key={e.id} style={{fontSize:12,color:"#92400e",marginRight:12}}>⚠️ <strong>{e.title}</strong> — {e.daysLeft===0?"DUE TODAY!":`${e.daysLeft}d left`}</span>)}
+          </div>}
         </div>
-        {eventReminders.length>0 && (
-          <div style={{marginTop:10,background:"rgba(251,191,36,0.25)",border:"1px solid rgba(251,191,36,0.5)",borderRadius:8,padding:"8px 12px"}}>
-            {eventReminders.map(e=><div key={e.id} style={{fontSize:13,color:"#fef3c7"}}>⚠️ <strong>{e.title}</strong> — {e.daysLeft===0?"🔴 DUE TODAY!":`${e.daysLeft} day(s) left`}</div>)}
-          </div>
-        )}
-      </div>
 
-      {/* ── Tabs ── */}
-      <div id="tabs">
-        {TABS.map(([id,lb])=>(
-          <button key={id} onClick={()=>setTab(id)} style={{
-            padding:"6px 14px",borderRadius:"20px 20px 0 0",border:"none",cursor:"pointer",fontWeight:600,fontSize:13,
-            background:tab===id?"white":"transparent",color:tab===id?"#6366f1":"#64748b",
-            borderBottom:tab===id?"2px solid #6366f1":"2px solid transparent",
-          }}>{lb}</button>
-        ))}
-      </div>
+        {/* Content */}
+        <div id="content">
 
-      {/* ── Content ── */}
-      <div id="content">
-
-        {/* ══ DAILY ══ */}
-        {tab==="planner" && (<>
-          {dow===1 && (
-            <div style={{...css.card,background:"#eff6ff",border:"1px solid #bfdbfe"}}>
-              <div style={{fontWeight:700,color:"#1d4ed8",marginBottom:6}}>🧪 Monday — Individual Lab Meeting</div>
-              <div style={{display:"flex",gap:8}}><span style={css.tag("#6366f1")}>AI Direction</span><span style={css.tag("#0891b2")}>Cardioid Direction</span></div>
-            </div>
-          )}
-          {dow===5 && (
-            <div style={{...css.card,background:meeting.myTurnFriday?"#fff7ed":"#f0fdf4",border:`1px solid ${meeting.myTurnFriday?"#fed7aa":"#bbf7d0"}`}}>
+          {/* ══ DAILY ══ */}
+          {tab==="planner"&&(<>
+            {dow===1&&<div className="card" style={{background:"#eff6ff",border:"1px solid #bfdbfe"}}>
+              <b style={{color:"#1d4ed8"}}>🧪 Monday — Individual Lab Meeting</b>
+              <div style={{display:"flex",gap:8,marginTop:6}}><span className="tag" style={{background:"#6366f1"}}>AI</span><span className="tag" style={{background:"#0891b2"}}>Cardioid</span></div>
+            </div>}
+            {dow===5&&<div className="card" style={{background:meeting.myTurnFriday?"#fff7ed":"#f0fdf4",border:`1px solid ${meeting.myTurnFriday?"#fed7aa":"#bbf7d0"}`}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div>
-                  <div style={{fontWeight:700,color:meeting.myTurnFriday?"#c2410c":"#15803d",marginBottom:4}}>🎤 Friday — Group Presentation</div>
-                  <div style={{fontSize:13,color:meeting.myTurnFriday?"#ea580c":"#16a34a"}}>
-                    {meeting.myTurnFriday?"🔴 It's YOUR turn to present today!":"✅ Not your turn this week"}
-                  </div>
-                </div>
-                <button onClick={()=>setMeeting({...meeting,myTurnFriday:!meeting.myTurnFriday})}
-                  style={css.btn(meeting.myTurnFriday?"#16a34a":"#ea580c")}>
-                  {meeting.myTurnFriday?"✓ Done":"My Turn"}
-                </button>
+                <div><b style={{color:meeting.myTurnFriday?"#c2410c":"#15803d"}}>🎤 Friday — Group Presentation</b>
+                <div style={{fontSize:13,color:meeting.myTurnFriday?"#ea580c":"#16a34a",marginTop:3}}>{meeting.myTurnFriday?"🔴 YOUR turn to present!":"✅ Not your turn this week"}</div></div>
+                <button className="btn" style={{background:meeting.myTurnFriday?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurnFriday:!meeting.myTurnFriday})}>{meeting.myTurnFriday?"✓ Done":"My Turn"}</button>
               </div>
-            </div>
-          )}
-          <div style={css.card}>
-            <div style={{fontWeight:700,fontSize:15,marginBottom:12}}>🔬 Lab Tasks</div>
-            {labToday.length===0
-              ? <div style={{color:"#94a3b8",textAlign:"center",padding:"16px 0",fontSize:14}}>No lab tasks today 🎉</div>
-              : labToday.map((t,i)=>(
-                <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:7,borderRadius:9,background:t.urgent?"#fff1f2":"#f8faff",border:`1px solid ${t.urgent?"#fecaca":"#e0e7ff"}`}}>
-                  <span style={css.tag(t.cat==="cell"?"#8b5cf6":"#0891b2")}>{t.cat==="cell"?"Cell":"Organoid"}</span>
+            </div>}
+
+            <div className="card">
+              <div style={{fontWeight:700,fontSize:15,marginBottom:12}}>🔬 Lab Tasks</div>
+              {labToday.length===0?<div style={{color:"#94a3b8",textAlign:"center",padding:"14px 0",fontSize:14}}>No lab tasks today 🎉</div>
+                :labToday.map((t,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:7,borderRadius:9,background:t.urgent?"#fff1f2":"#f8faff",border:`1px solid ${t.urgent?"#fecaca":"#e0e7ff"}`}}>
+                  <span className="tag" style={{background:t.cat==="cell"?"#8b5cf6":"#0891b2"}}>{t.cat==="cell"?"Cell":"Organoid"}</span>
                   <div style={{flex:1}}><div style={{fontWeight:600,fontSize:14,color:t.urgent?"#dc2626":"#1e293b"}}>{t.name}</div><div style={{fontSize:12,color:"#64748b"}}>{t.detail}</div></div>
                   {t.urgent&&<span>⚠️</span>}
-                </div>
-              ))
-            }
-          </div>
-          <div style={css.card}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-              <div style={{fontWeight:700,fontSize:15}}>📅 Schedule</div>
-              <button onClick={()=>{setNt({type:"coding",title:"",time:"09:00",duration:60,detail:""});setModal("task");}} style={css.btn("#6366f1")}>+ Add</button>
+                </div>)}
             </div>
-            {personal.length===0
-              ? <div style={{color:"#94a3b8",textAlign:"center",padding:"16px 0",fontSize:14}}>No schedule — click "+ Add"</div>
-              : personal.map((t,i)=>{
-                const tp=TASK_TYPES.find(x=>x.id===t.type);
-                return (
+
+            <div className="card">
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <div style={{fontWeight:700,fontSize:15}}>📅 Schedule</div>
+                <button className="btn" style={{background:"#6366f1"}} onClick={()=>{setNt({type:"coding",title:"",time:"09:00",duration:60,detail:""});setModal("task");}}>+ Add</button>
+              </div>
+              {personal.length===0?<div style={{color:"#94a3b8",textAlign:"center",padding:"14px 0",fontSize:14}}>No schedule — click "+ Add"</div>
+                :personal.map((t,i)=>{const tp=TASK_TYPES.find(x=>x.id===t.type);return(
                   <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:7,borderRadius:9,background:"#fafafa",border:"1px solid #e5e7eb"}}>
                     <div style={{textAlign:"center",minWidth:44}}><div style={{fontSize:13,fontWeight:700}}>{t.time}</div><div style={{fontSize:11,color:"#9ca3af"}}>{t.duration}m</div></div>
-                    <span style={css.tag(tp?.color||"#6b7280")}>{tp?.label||t.type}</span>
+                    <span className="tag" style={{background:tp?.color||"#6b7280"}}>{tp?.label||t.type}</span>
                     <div style={{flex:1}}><div style={{fontWeight:600,fontSize:14}}>{t.title}</div>{t.detail&&<div style={{fontSize:12,color:"#64748b"}}>{t.detail}</div>}</div>
                     <button onClick={()=>setPtasks({...ptasks,[date]:(ptasks[date]||[]).filter((_,j)=>j!==i)})} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer",fontSize:18}}>✕</button>
                   </div>
-                );
-              })
-            }
-          </div>
-          <div style={{...css.card,background:"#f8faff",border:"1px solid #e0e7ff"}}>
-            <div style={{fontWeight:700,fontSize:14,color:"#4338ca",marginBottom:8}}>📅 Tomorrow — {addDays(date,1)}</div>
-            {labTomorrow.length===0?<div style={{color:"#a5b4fc",fontSize:13}}>No lab tasks tomorrow</div>
-              :labTomorrow.map((t,i)=><div key={i} style={{fontSize:13,color:"#3730a3",marginBottom:4}}>🔬 <strong>{t.name}</strong>: {t.label}</div>)}
-          </div>
-        </>)}
+                );})}
+            </div>
 
-        {/* ══ MEETINGS ══ */}
-        {tab==="meetings" && (
-          <div style={css.card}>
-            <div style={{fontWeight:700,fontSize:16,marginBottom:16}}>🧪 Weekly Lab Meetings</div>
-            {/* Monday */}
-            <div style={{...css.card,background:"#eff6ff",border:"1px solid #bfdbfe"}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-                <span style={css.tag("#1d4ed8")}>Every Monday</span>
-                <span style={{fontWeight:700,fontSize:14}}>Individual Meeting</span>
-              </div>
+            <div className="card" style={{background:"#f8faff",border:"1px solid #e0e7ff"}}>
+              <div style={{fontWeight:700,fontSize:14,color:"#4338ca",marginBottom:8}}>📅 Tomorrow — {addDays(date,1)}</div>
+              {labTomorrow.length===0?<div style={{color:"#a5b4fc",fontSize:13}}>No lab tasks</div>
+                :labTomorrow.map((t,i)=><div key={i} style={{fontSize:13,color:"#3730a3",marginBottom:4}}>🔬 <strong>{t.name}</strong>: {t.label}</div>)}
+            </div>
+          </>)}
+
+          {/* ══ MEETINGS ══ */}
+          {tab==="meetings"&&<div className="card">
+            <div style={{fontWeight:700,fontSize:16,marginBottom:14}}>🧪 Weekly Lab Meetings</div>
+            <div className="card" style={{background:"#eff6ff",border:"1px solid #bfdbfe"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><span className="tag" style={{background:"#1d4ed8"}}>Every Monday</span><span style={{fontWeight:700}}>Individual Meeting</span></div>
               <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-                <div style={{flex:1,minWidth:240,background:"white",borderRadius:9,padding:"12px",border:"1px solid #bfdbfe"}}>
-                  <div style={{...css.tag("#6366f1"),marginBottom:10}}>🤖 AI Direction</div>
-                  <label style={css.lbl}>This week's update</label>
-                  <RichEditor value={notes[`mon_ai_${date}`]||""} onChange={v=>setNote(`mon_ai_${date}`,v)} placeholder="Progress, blockers, questions..." minHeight={120} />
-                </div>
-                <div style={{flex:1,minWidth:240,background:"white",borderRadius:9,padding:"12px",border:"1px solid #bfdbfe"}}>
-                  <div style={{...css.tag("#0891b2"),marginBottom:10}}>🫀 Cardioid Direction</div>
-                  <label style={css.lbl}>This week's update</label>
-                  <RichEditor value={notes[`mon_card_${date}`]||""} onChange={v=>setNote(`mon_card_${date}`,v)} placeholder="Progress, blockers, questions..." minHeight={120} />
-                </div>
+                {[["mon_ai","🤖 AI Direction","#6366f1"],["mon_card","🫀 Cardioid Direction","#0891b2"]].map(([k,lbl,c])=>(
+                  <div key={k} style={{flex:1,minWidth:220,background:"white",borderRadius:9,padding:"12px",border:"1px solid #bfdbfe"}}>
+                    <div className="tag" style={{background:c,marginBottom:10}}>{lbl}</div>
+                    <div className="lbl">This week's update</div>
+                    <RTE value={notes[`${k}_${date}`]||""} onChange={v=>setNote(`${k}_${date}`,v)} placeholder="Progress, blockers, questions..." minH={120}/>
+                  </div>
+                ))}
               </div>
             </div>
-            {/* Friday */}
-            <div style={{...css.card,background:"#fdf4ff",border:"1px solid #e9d5ff",marginBottom:0}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-                <span style={css.tag("#9333ea")}>Every Friday</span>
-                <span style={{fontWeight:700,fontSize:14}}>Group Presentation</span>
-              </div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:"white",borderRadius:9,padding:"12px 14px",border:"1px solid #e9d5ff",marginBottom:10}}>
-                <div>
-                  <div style={{fontWeight:600,fontSize:14,marginBottom:3}}>Is it your turn this Friday?</div>
-                  <div style={{fontSize:12,color:"#64748b"}}>Toggle on when it's your week to present</div>
-                </div>
+            <div className="card" style={{background:"#fdf4ff",border:"1px solid #e9d5ff",marginBottom:0}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><span className="tag" style={{background:"#9333ea"}}>Every Friday</span><span style={{fontWeight:700}}>Group Presentation</span></div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:"white",borderRadius:9,padding:"12px 14px",border:"1px solid #e9d5ff",marginBottom:meeting.myTurnFriday?10:0}}>
+                <div><div style={{fontWeight:600,marginBottom:3}}>Is it your turn this Friday?</div><div style={{fontSize:12,color:"#64748b"}}>Toggle on when it's your week</div></div>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <span style={{fontSize:13,fontWeight:600,color:meeting.myTurnFriday?"#ea580c":"#16a34a"}}>{meeting.myTurnFriday?"🔴 My Turn!":"✅ Not my turn"}</span>
-                  <button onClick={()=>setMeeting({...meeting,myTurnFriday:!meeting.myTurnFriday})} style={css.btn(meeting.myTurnFriday?"#16a34a":"#ea580c")}>
-                    {meeting.myTurnFriday?"Mark Done":"It's My Turn"}
-                  </button>
+                  <button className="btn" style={{background:meeting.myTurnFriday?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurnFriday:!meeting.myTurnFriday})}>{meeting.myTurnFriday?"Mark Done":"It's My Turn"}</button>
                 </div>
               </div>
-              {meeting.myTurnFriday && (
-                <div style={{background:"white",borderRadius:9,padding:"12px",border:"1px solid #e9d5ff"}}>
-                  <label style={css.lbl}>📊 Presentation outline / notes</label>
-                  <RichEditor value={notes["fri_present"]||""} onChange={v=>setNote("fri_present",v)} placeholder="Key results, slide outline, questions to address..." minHeight={150} />
-                </div>
-              )}
+              {meeting.myTurnFriday&&<div style={{background:"white",borderRadius:9,padding:"12px",border:"1px solid #e9d5ff"}}>
+                <div className="lbl">📊 Presentation outline</div>
+                <RTE value={notes["fri_present"]||""} onChange={v=>setNote("fri_present",v)} placeholder="Key results, slides outline, questions..." minH={150}/>
+              </div>}
             </div>
-          </div>
-        )}
+          </div>}
 
-        {/* ══ EVENTS ══ */}
-        {tab==="events" && (<>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <strong style={{fontSize:15}}>🎯 Deadlines & Events</strong>
-            <button onClick={()=>{setNe({cat:"poster",title:"",deadline:"",reminderDays:7,detail:""});setModal("event");}} style={css.btn("#1e3a5f")}>+ Add Event</button>
-          </div>
-          {activeEvents.length===0&&<div style={{...css.card,textAlign:"center",color:"#94a3b8",padding:40}}>No upcoming events — add one!</div>}
-          {activeEvents.map(e=>{
-            const cat=EVENT_CATS.find(x=>x.id===e.cat), urgent=e.daysLeft<=e.reminderDays&&e.daysLeft>=0, overdue=e.daysLeft<0;
-            return (
-              <div key={e.id} style={{...css.card,borderLeft:`4px solid ${overdue?"#ef4444":urgent?"#f59e0b":cat?.color||"#94a3b8"}`}}>
+          {/* ══ EVENTS ══ */}
+          {tab==="events"&&(<>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+              <strong style={{fontSize:15}}>🎯 Deadlines & Events</strong>
+              <button className="btn" style={{background:"#1e3a5f"}} onClick={()=>{setNe({cat:"poster",title:"",deadline:"",reminderDays:7,detail:""});setModal("event");}}>+ Add Event</button>
+            </div>
+            {activeEvents.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:40}}>No upcoming events</div>}
+            {activeEvents.map(e=>{
+              const cat=EVENT_CATS.find(x=>x.id===e.cat),urgent=e.daysLeft<=e.reminderDays&&e.daysLeft>=0,overdue=e.daysLeft<0;
+              return<div key={e.id} className="card" style={{borderLeft:`4px solid ${overdue?"#ef4444":urgent?"#f59e0b":cat?.color||"#94a3b8"}`}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,flexWrap:"wrap"}}>
                   <div style={{flex:1}}>
-                    <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap",marginBottom:4}}>
-                      <span style={css.tag(cat?.color||"#94a3b8")}>{cat?.label||e.cat}</span>
-                      {overdue&&<span style={css.tag("#ef4444")}>OVERDUE</span>}
-                      {!overdue&&urgent&&<span style={css.tag("#f59e0b")}>⚠️ Due Soon</span>}
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:4}}>
+                      <span className="tag" style={{background:cat?.color||"#94a3b8"}}>{cat?.label||e.cat}</span>
+                      {overdue&&<span className="tag" style={{background:"#ef4444"}}>OVERDUE</span>}
+                      {!overdue&&urgent&&<span className="tag" style={{background:"#f59e0b"}}>⚠️ Due Soon</span>}
                     </div>
                     <div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{e.title}</div>
                     {e.detail&&<div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{e.detail}</div>}
-                    <div style={{fontSize:13}}>
-                      <span style={{color:"#64748b"}}>Deadline: </span>
-                      <strong style={{color:overdue?"#ef4444":urgent?"#f59e0b":"#334155"}}>{e.deadline}</strong>
-                      <span style={{marginLeft:8,fontSize:12,color:overdue?"#ef4444":urgent?"#f59e0b":"#94a3b8"}}>
-                        {overdue?`(${Math.abs(e.daysLeft)}d overdue)`:e.daysLeft===0?"🔴 TODAY!":`(${e.daysLeft}d left)`}
-                      </span>
-                    </div>
-                    {!overdue&&<div style={{marginTop:8,height:4,background:"#f1f5f9",borderRadius:4,overflow:"hidden"}}>
-                      <div style={{height:"100%",borderRadius:4,width:`${Math.min(100,Math.max(0,((e.reminderDays-e.daysLeft)/e.reminderDays)*100))}%`,background:e.daysLeft<=3?"#ef4444":e.daysLeft<=7?"#f59e0b":"#10b981"}} />
-                    </div>}
+                    <div style={{fontSize:13}}><span style={{color:"#64748b"}}>Deadline: </span><strong style={{color:overdue?"#ef4444":urgent?"#f59e0b":"#334155"}}>{e.deadline}</strong><span style={{marginLeft:8,fontSize:12,color:overdue?"#ef4444":urgent?"#f59e0b":"#94a3b8"}}>{overdue?`(${Math.abs(e.daysLeft)}d overdue)`:e.daysLeft===0?"🔴 TODAY!":`(${e.daysLeft}d left)`}</span></div>
+                    {!overdue&&<div style={{marginTop:8,height:4,background:"#f1f5f9",borderRadius:4,overflow:"hidden"}}><div style={{height:"100%",borderRadius:4,width:`${Math.min(100,Math.max(0,((e.reminderDays-e.daysLeft)/e.reminderDays)*100))}%`,background:e.daysLeft<=3?"#ef4444":e.daysLeft<=7?"#f59e0b":"#10b981"}}/></div>}
                   </div>
                   <div style={{display:"flex",gap:6,flexDirection:"column"}}>
-                    <button onClick={()=>setEvents(events.map(x=>x.id===e.id?{...x,archived:true}:x))} style={css.btn("#10b981")}>✓ Done</button>
-                    <button onClick={()=>setEvents(events.filter(x=>x.id!==e.id))} style={css.btn("#ef4444")}>✕</button>
+                    <button className="btn" style={{background:"#10b981"}} onClick={()=>setEvents(events.map(x=>x.id===e.id?{...x,archived:true}:x))}>✓ Done</button>
+                    <button className="btn" style={{background:"#ef4444"}} onClick={()=>setEvents(events.filter(x=>x.id!==e.id))}>✕</button>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-          {archivedEvents.length>0&&(
-            <details style={{marginTop:8}}>
-              <summary style={{cursor:"pointer",color:"#94a3b8",fontSize:13,fontWeight:600,padding:"8px 0"}}>✅ Archived ({archivedEvents.length})</summary>
-              {archivedEvents.map(e=>{const cat=EVENT_CATS.find(x=>x.id===e.cat);return(
-                <div key={e.id} style={{...css.card,opacity:.6,marginTop:8}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <div><span style={css.tag(cat?.color||"#94a3b8")}>{cat?.label||e.cat}</span><span style={{marginLeft:8,fontWeight:600}}>{e.title}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{e.deadline}</span></div>
-                    <button onClick={()=>setEvents(events.filter(x=>x.id!==e.id))} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer"}}>✕</button>
-                  </div>
+              </div>;
+            })}
+            {archivedEvents.length>0&&<details style={{marginTop:8}}><summary style={{cursor:"pointer",color:"#94a3b8",fontSize:13,fontWeight:600,padding:"8px 0"}}>✅ Archived ({archivedEvents.length})</summary>
+              {archivedEvents.map(e=>{const cat=EVENT_CATS.find(x=>x.id===e.cat);return<div key={e.id} className="card" style={{opacity:.6,marginTop:8}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div><span className="tag" style={{background:cat?.color||"#94a3b8"}}>{cat?.label||e.cat}</span><span style={{marginLeft:8,fontWeight:600}}>{e.title}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{e.deadline}</span></div>
+                  <button onClick={()=>setEvents(events.filter(x=>x.id!==e.id))} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer"}}>✕</button>
                 </div>
-              );})}
-            </details>
-          )}
-        </>)}
+              </div>;})}
+            </details>}
+          </>)}
 
-        {/* ══ CELLS ══ */}
-        {tab==="cells" && (<>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <strong style={{fontSize:15}}>🧫 Cell Line Tracker</strong>
-            <button onClick={()=>{setNc({name:"",passage:0,passageDate:date});setModal("cell");}} style={css.btn("#8b5cf6")}>+ Add</button>
-          </div>
-          <div style={{...css.card,background:"#fafafa",padding:"10px 14px",marginBottom:12,fontSize:12,color:"#64748b"}}>
-            <strong style={{color:"#334155"}}>Protocol:</strong> D0: Ri+E8 → D1: E8 → D2–D3: E8F → D4+: Passage required
-          </div>
-          {cells.length===0&&<div style={{...css.card,textAlign:"center",color:"#94a3b8",padding:40}}>No cell lines added</div>}
-          {cells.map((c,i)=>{
-            const day=diff(c.passageDate,date),media=getCellMedia(day),warn=day>=4;
-            return (
-              <div key={c.id} style={{...css.card,borderLeft:`4px solid ${warn?"#ef4444":media?"#10b981":"#e2e8f0"}`}}>
+          {/* ══ CELLS ══ */}
+          {tab==="cells"&&(<>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+              <strong style={{fontSize:15}}>🧫 Cell Line Tracker</strong>
+              <button className="btn" style={{background:"#8b5cf6"}} onClick={()=>{setNc({name:"",passage:0,passageDate:date});setModal("cell");}}>+ Add</button>
+            </div>
+            <div className="card" style={{background:"#fafafa",padding:"10px 14px",marginBottom:12,fontSize:12,color:"#64748b"}}><strong style={{color:"#334155"}}>Protocol:</strong> D0: Ri+E8 → D1: E8 → D2–D3: E8F → D4+: Passage required</div>
+            {cells.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:40}}>No cell lines added</div>}
+            {cells.map((c,i)=>{const day=diff(c.passageDate,date),media=getCellMedia(day),warn=day>=4;return(
+              <div key={c.id} className="card" style={{borderLeft:`4px solid ${warn?"#ef4444":media?"#10b981":"#e2e8f0"}`}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8}}>
-                  <div><span style={{fontWeight:700,fontSize:15}}>{c.name}</span><span style={{...css.tag("#8b5cf6"),marginLeft:8}}>P{c.passage}</span><div style={{color:"#64748b",fontSize:12,marginTop:3}}>Passaged: {c.passageDate} | Today: <strong>D{day}</strong></div></div>
+                  <div><span style={{fontWeight:700,fontSize:15}}>{c.name}</span><span className="tag" style={{background:"#8b5cf6",marginLeft:8}}>P{c.passage}</span><div style={{color:"#64748b",fontSize:12,marginTop:3}}>Passaged: {c.passageDate} | Today: <strong>D{day}</strong></div></div>
                   <div style={{display:"flex",gap:6}}>
-                    <button style={css.btn("#3b82f6")} onClick={()=>setCells(cells.map((x,j)=>j===i?{...x,passage:x.passage+1,passageDate:date}:x))}>Passage → P{c.passage+1}</button>
-                    <button style={css.btn("#ef4444")} onClick={()=>setCells(cells.filter((_,j)=>j!==i))}>✕</button>
+                    <button className="btn" style={{background:"#3b82f6"}} onClick={()=>setCells(cells.map((x,j)=>j===i?{...x,passage:x.passage+1,passageDate:date}:x))}>Passage → P{c.passage+1}</button>
+                    <button className="btn" style={{background:"#ef4444"}} onClick={()=>setCells(cells.filter((_,j)=>j!==i))}>✕</button>
                   </div>
                 </div>
                 <div style={{marginTop:10,padding:"8px 12px",borderRadius:8,background:warn?"#fff1f2":media?"#f0fdf4":"#f8fafc",border:`1px solid ${warn?"#fecaca":media?"#bbf7d0":"#e2e8f0"}`}}>
                   {warn?<span style={{color:"#dc2626",fontWeight:700}}>⚠️ Passage required! (D{day})</span>:media?<span style={{color:"#16a34a",fontWeight:700}}>💊 Today: {media}</span>:<span style={{color:"#94a3b8"}}>No action today</span>}
                 </div>
               </div>
-            );
-          })}
-        </>)}
+            );})}
+          </>)}
 
-        {/* ══ ORGANOIDS ══ */}
-        {tab==="orgs" && (<>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <strong style={{fontSize:15}}>🫀 Organoid Tracker</strong>
-            <button onClick={()=>{setNo({name:"",type:"normal",format:"gel",seedDate:date});setModal("org");}} style={css.btn("#0891b2")}>+ Add Batch</button>
-          </div>
-          {orgs.length===0&&<div style={{...css.card,textAlign:"center",color:"#94a3b8",padding:40}}>No batches added</div>}
-          {orgs.map((o,i)=>{
-            const day=diff(o.seedDate,date)-3,getTask=o.type==="normal"?getNormalTask:getVascTask,todayTask=getTask(day),tc=o.type==="normal"?"#0891b2":"#9333ea";
-            const d0=parse(o.seedDate);d0.setDate(d0.getDate()+3);
-            const upcoming=[];for(let d=day+1;d<=21&&upcoming.length<5;d++){const t=getTask(d);if(t)upcoming.push({day:d,task:t,date:addDays(o.seedDate,d+3)});}
-            return (
-              <div key={o.id} style={{...css.card,borderLeft:`4px solid ${tc}`}}>
+          {/* ══ ORGANOIDS ══ */}
+          {tab==="orgs"&&(<>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+              <strong style={{fontSize:15}}>🫀 Organoid Tracker</strong>
+              <button className="btn" style={{background:"#0891b2"}} onClick={()=>{setNo({name:"",type:"normal",format:"gel",seedDate:date});setModal("org");}}>+ Add Batch</button>
+            </div>
+            {orgs.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:40}}>No batches added</div>}
+            {orgs.map((o,i)=>{
+              const day=diff(o.seedDate,date)-3,getTask=o.type==="normal"?getNormalTask:getVascTask,todayTask=getTask(day),tc=o.type==="normal"?"#0891b2":"#9333ea";
+              const d0=parse(o.seedDate);d0.setDate(d0.getDate()+3);
+              const upcoming=[];for(let d=day+1;d<=21&&upcoming.length<5;d++){const t=getTask(d);if(t)upcoming.push({day:d,task:t,date:addDays(o.seedDate,d+3)});}
+              return<div key={o.id} className="card" style={{borderLeft:`4px solid ${tc}`}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8}}>
                   <div>
                     <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
                       <span style={{fontWeight:700,fontSize:15}}>{o.name}</span>
-                      <span style={css.tag(tc)}>{o.type==="normal"?"Normal":"Vascularized"}</span>
-                      <span style={css.tag("#f59e0b")}>{o.format.toUpperCase()}</span>
-                      {day>21&&<span style={css.tag("#10b981")}>✅ Complete</span>}
+                      <span className="tag" style={{background:tc}}>{o.type==="normal"?"Normal":"Vascularized"}</span>
+                      <span className="tag" style={{background:"#f59e0b"}}>{o.format.toUpperCase()}</span>
+                      {day>21&&<span className="tag" style={{background:"#10b981"}}>✅ Complete</span>}
                     </div>
                     <div style={{color:"#64748b",fontSize:12,marginTop:3}}>Seeding: {o.seedDate} | D0: {fmt(d0)} | Today: <strong>D{day}</strong></div>
                   </div>
-                  <button style={css.btn("#ef4444")} onClick={()=>setOrgs(orgs.filter((_,j)=>j!==i))}>✕</button>
+                  <button className="btn" style={{background:"#ef4444"}} onClick={()=>setOrgs(orgs.filter((_,j)=>j!==i))}>✕</button>
                 </div>
                 <div style={{marginTop:10,padding:"8px 12px",borderRadius:8,background:todayTask?"#eff6ff":day>21?"#f0fdf4":"#f8fafc",border:`1px solid ${todayTask?"#bfdbfe":day>21?"#bbf7d0":"#e2e8f0"}`}}>
                   {todayTask?<span style={{color:"#1d4ed8",fontWeight:700}}>📋 Today: {todayTask}</span>:day>21?<span style={{color:"#16a34a",fontWeight:700}}>✅ Complete</span>:day<-3?<span style={{color:"#94a3b8"}}>⏳ Starts in {-3-day}d</span>:<span style={{color:"#94a3b8"}}>No action (D{day})</span>}
                 </div>
-                {upcoming.length>0&&<div style={{display:"flex",gap:5,flexWrap:"wrap",marginTop:8}}>{upcoming.map(u=><div key={u.day} style={{...css.pill,padding:"4px 9px"}}><span style={{color:"#94a3b8"}}>{u.date} </span><strong style={{color:tc}}>D{u.day}</strong>: {u.task}</div>)}</div>}
-              </div>
-            );
-          })}
-        </>)}
+                {upcoming.length>0&&<div style={{display:"flex",gap:5,flexWrap:"wrap",marginTop:8}}>{upcoming.map(u=><div key={u.day} className="pill" style={{padding:"4px 9px"}}><span style={{color:"#94a3b8"}}>{u.date} </span><strong style={{color:tc}}>D{u.day}</strong>: {u.task}</div>)}</div>}
+              </div>;
+            })}
+          </>)}
 
-        {/* ══ NOTES ══ */}
-        {tab==="notes" && (
-          <div style={css.card}>
+          {/* ══ DAILY NOTES ══ */}
+          {tab==="notes"&&<div className="card">
             <strong style={{fontSize:15,display:"block",marginBottom:12}}>📝 Notes — {date}</strong>
-            <RichEditor value={notes[date]||""} onChange={v=>setNote(date,v)} placeholder="Daily notes, observations, thoughts..." minHeight={400} />
+            <RTE value={notes[date]||""} onChange={v=>setNote(date,v)} placeholder="Daily notes, observations, thoughts..." minH={420}/>
             <div style={{fontSize:11,color:"#94a3b8",marginTop:6}}>Auto-saved ✓</div>
-          </div>
-        )}
+          </div>}
 
-      </div>{/* end content */}
+          {/* ══ PROTOCOLS ══ */}
+          {tab==="protocols"&&(<>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+              <strong style={{fontSize:15}}>📂 Protocols</strong>
+              <button className="btn" style={{background:"#1e3a5f"}} onClick={()=>{setNp({title:"",category:"",content:""});setModal("prot");}}>+ Add Protocol</button>
+            </div>
+            {protocols.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:40}}>
+              <div style={{fontSize:32,marginBottom:8}}>📂</div>
+              <div style={{fontWeight:600,marginBottom:4}}>No protocols yet</div>
+              <div style={{fontSize:13}}>Add your lab protocols — cell culture, organoid, staining, etc.</div>
+            </div>}
+            {protocols.map((p,i)=>(
+              <div key={p.id} className="card">
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}} onClick={()=>setExpandProt(expandProt===p.id?null:p.id)}>
+                  <div>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{fontWeight:700,fontSize:15}}>{p.title}</span>
+                      {p.category&&<span className="tag" style={{background:"#475569"}}>{p.category}</span>}
+                    </div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <button className="btn" style={{background:"#ef4444",padding:"4px 10px",fontSize:12}} onClick={e=>{e.stopPropagation();setProtocols(protocols.filter((_,j)=>j!==i));}}>✕</button>
+                    <span style={{color:"#94a3b8",fontSize:18}}>{expandProt===p.id?"▲":"▼"}</span>
+                  </div>
+                </div>
+                {expandProt===p.id&&<div style={{marginTop:12}}>
+                  <RTE value={p.content||""} onChange={v=>setProtocols(protocols.map((x,j)=>j===i?{...x,content:v}:x))} placeholder="Write protocol steps..." minH={200}/>
+                </div>}
+              </div>
+            ))}
+          </>)}
+
+          {/* ══ NOTES LIBRARY ══ */}
+          {tab==="library"&&(<>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+              <strong style={{fontSize:15}}>📚 Notes Library</strong>
+              <button className="btn" style={{background:"#1e3a5f"}} onClick={()=>{setNl({title:"",tag:"",content:""});setModal("lib");}}>+ Add Note</button>
+            </div>
+            {libNotes.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:40}}>
+              <div style={{fontSize:32,marginBottom:8}}>📚</div>
+              <div style={{fontWeight:600,marginBottom:4}}>No saved notes yet</div>
+              <div style={{fontSize:13}}>Save paper summaries, lecture notes, ideas, references…</div>
+            </div>}
+            {libNotes.map((n,i)=>(
+              <div key={n.id} className="card">
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}} onClick={()=>setExpandLib(expandLib===n.id?null:n.id)}>
+                  <div>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{fontWeight:700,fontSize:15}}>{n.title}</span>
+                      {n.tag&&<span className="tag" style={{background:"#8b5cf6"}}>{n.tag}</span>}
+                    </div>
+                    <div style={{fontSize:11,color:"#94a3b8",marginTop:2}}>{n.date}</div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <button className="btn" style={{background:"#ef4444",padding:"4px 10px",fontSize:12}} onClick={e=>{e.stopPropagation();setLibNotes(libNotes.filter((_,j)=>j!==i));}}>✕</button>
+                    <span style={{color:"#94a3b8",fontSize:18}}>{expandLib===n.id?"▲":"▼"}</span>
+                  </div>
+                </div>
+                {expandLib===n.id&&<div style={{marginTop:12}}>
+                  <RTE value={n.content||""} onChange={v=>setLibNotes(libNotes.map((x,j)=>j===i?{...x,content:v}:x))} placeholder="Notes, summaries, references..." minH={200}/>
+                </div>}
+              </div>
+            ))}
+          </>)}
+
+        </div>{/* end content */}
+      </div>{/* end main */}
 
       {/* ══ MODALS ══ */}
       {modal==="cell"&&<Modal title="➕ Add Cell Line" onClose={()=>setModal(null)}>
-        <label style={css.lbl}>Name</label><input style={css.inp} value={nc.name} onChange={e=>setNc({...nc,name:e.target.value})} placeholder="e.g. iPSC-Line1"/>
-        <label style={css.lbl}>Passage (P)</label><input style={css.inp} type="number" value={nc.passage} onChange={e=>setNc({...nc,passage:parseInt(e.target.value)||0})}/>
-        <label style={css.lbl}>Last passage date (D0)</label><input style={css.inp} type="date" value={nc.passageDate} onChange={e=>setNc({...nc,passageDate:e.target.value})}/>
-        <button style={{...css.btn("#8b5cf6"),width:"100%",padding:10}} onClick={()=>{if(!nc.name||!nc.passageDate)return;setCells([...cells,{...nc,id:Date.now()}]);setModal(null);}}>Add</button>
+        <label className="lbl">Name</label><input className="inp" value={nc.name} onChange={e=>setNc({...nc,name:e.target.value})} placeholder="e.g. iPSC-Line1"/>
+        <label className="lbl">Passage (P)</label><input className="inp" type="number" value={nc.passage} onChange={e=>setNc({...nc,passage:parseInt(e.target.value)||0})}/>
+        <label className="lbl">Last passage date (D0)</label><input className="inp" type="date" value={nc.passageDate} onChange={e=>setNc({...nc,passageDate:e.target.value})}/>
+        <button className="btn" style={{background:"#8b5cf6",width:"100%",padding:10}} onClick={()=>{if(!nc.name||!nc.passageDate)return;setCells([...cells,{...nc,id:Date.now()}]);setModal(null);}}>Add</button>
       </Modal>}
 
       {modal==="org"&&<Modal title="➕ Add Organoid Batch" onClose={()=>setModal(null)}>
-        <label style={css.lbl}>Batch name</label><input style={css.inp} value={no.name} onChange={e=>setNo({...no,name:e.target.value})} placeholder="e.g. Batch-A"/>
-        <label style={css.lbl}>Protocol</label><select style={css.inp} value={no.type} onChange={e=>setNo({...no,type:e.target.value})}><option value="normal">Normal</option><option value="vasc">Vascularized</option></select>
-        <label style={css.lbl}>Format</label><select style={css.inp} value={no.format} onChange={e=>setNo({...no,format:e.target.value})}><option value="gel">Gel</option><option value="normal">Normal</option><option value="chip">Chip</option></select>
-        <label style={css.lbl}>Seeding date (D-3)</label><input style={css.inp} type="date" value={no.seedDate} onChange={e=>setNo({...no,seedDate:e.target.value})}/>
+        <label className="lbl">Batch name</label><input className="inp" value={no.name} onChange={e=>setNo({...no,name:e.target.value})} placeholder="e.g. Batch-A"/>
+        <label className="lbl">Protocol</label><select className="inp" value={no.type} onChange={e=>setNo({...no,type:e.target.value})}><option value="normal">Normal</option><option value="vasc">Vascularized</option></select>
+        <label className="lbl">Format</label><select className="inp" value={no.format} onChange={e=>setNo({...no,format:e.target.value})}><option value="gel">Gel</option><option value="normal">Normal</option><option value="chip">Chip</option></select>
+        <label className="lbl">Seeding date (D-3)</label><input className="inp" type="date" value={no.seedDate} onChange={e=>setNo({...no,seedDate:e.target.value})}/>
         {no.seedDate&&<div style={{background:"#eff6ff",borderRadius:8,padding:"7px 11px",fontSize:12,color:"#1d4ed8",marginBottom:10}}>D0 (CHIR): {addDays(no.seedDate,3)}</div>}
-        <button style={{...css.btn("#0891b2"),width:"100%",padding:10}} onClick={()=>{if(!no.name||!no.seedDate)return;setOrgs([...orgs,{...no,id:Date.now()}]);setModal(null);}}>Add</button>
+        <button className="btn" style={{background:"#0891b2",width:"100%",padding:10}} onClick={()=>{if(!no.name||!no.seedDate)return;setOrgs([...orgs,{...no,id:Date.now()}]);setModal(null);}}>Add</button>
       </Modal>}
 
       {modal==="task"&&<Modal title="➕ Add Schedule Item" onClose={()=>setModal(null)}>
-        <label style={css.lbl}>Type</label><select style={css.inp} value={nt.type} onChange={e=>setNt({...nt,type:e.target.value})}>{TASK_TYPES.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}</select>
-        <label style={css.lbl}>Title</label><input style={css.inp} value={nt.title} onChange={e=>setNt({...nt,title:e.target.value})} placeholder="e.g. CS101 Lecture"/>
+        <label className="lbl">Type</label><select className="inp" value={nt.type} onChange={e=>setNt({...nt,type:e.target.value})}>{TASK_TYPES.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}</select>
+        <label className="lbl">Title</label><input className="inp" value={nt.title} onChange={e=>setNt({...nt,title:e.target.value})} placeholder="e.g. CS101 Lecture"/>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-          <div><label style={css.lbl}>Start time</label><input style={css.inp} type="time" value={nt.time} onChange={e=>setNt({...nt,time:e.target.value})}/></div>
-          <div><label style={css.lbl}>Duration (min)</label><input style={css.inp} type="number" value={nt.duration} onChange={e=>setNt({...nt,duration:parseInt(e.target.value)||60})}/></div>
+          <div><label className="lbl">Start time</label><input className="inp" type="time" value={nt.time} onChange={e=>setNt({...nt,time:e.target.value})}/></div>
+          <div><label className="lbl">Duration (min)</label><input className="inp" type="number" value={nt.duration} onChange={e=>setNt({...nt,duration:parseInt(e.target.value)||60})}/></div>
         </div>
-        <label style={css.lbl}>Notes</label><input style={css.inp} value={nt.detail} onChange={e=>setNt({...nt,detail:e.target.value})} placeholder="Location, link..."/>
-        <button style={{...css.btn("#6366f1"),width:"100%",padding:10}} onClick={()=>{if(!nt.title)return;setPtasks({...ptasks,[date]:[...(ptasks[date]||[]),{...nt,id:Date.now()}]});setModal(null);}}>Add</button>
+        <label className="lbl">Notes</label><input className="inp" value={nt.detail} onChange={e=>setNt({...nt,detail:e.target.value})} placeholder="Location, link..."/>
+        <button className="btn" style={{background:"#6366f1",width:"100%",padding:10}} onClick={()=>{if(!nt.title)return;setPtasks({...ptasks,[date]:[...(ptasks[date]||[]),{...nt,id:Date.now()}]});setModal(null);}}>Add</button>
       </Modal>}
 
       {modal==="event"&&<Modal title="➕ Add Deadline / Event" onClose={()=>setModal(null)}>
-        <label style={css.lbl}>Category</label><select style={css.inp} value={ne.cat} onChange={e=>setNe({...ne,cat:e.target.value})}>{EVENT_CATS.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}</select>
-        <label style={css.lbl}>Title</label><input style={css.inp} value={ne.title} onChange={e=>setNe({...ne,title:e.target.value})} placeholder="e.g. Submit AHA Poster Abstract"/>
-        <label style={css.lbl}>Deadline</label><input style={css.inp} type="date" value={ne.deadline} onChange={e=>setNe({...ne,deadline:e.target.value})}/>
-        <label style={css.lbl}>Remind me _ days before</label><input style={css.inp} type="number" value={ne.reminderDays} onChange={e=>setNe({...ne,reminderDays:parseInt(e.target.value)||7})}/>
-        <label style={css.lbl}>Notes</label><input style={css.inp} value={ne.detail} onChange={e=>setNe({...ne,detail:e.target.value})} placeholder="Conference, link..."/>
-        <button style={{...css.btn("#1e3a5f"),width:"100%",padding:10}} onClick={()=>{if(!ne.title||!ne.deadline)return;setEvents([...events,{...ne,id:Date.now(),archived:false}]);setModal(null);}}>Add</button>
+        <label className="lbl">Category</label><select className="inp" value={ne.cat} onChange={e=>setNe({...ne,cat:e.target.value})}>{EVENT_CATS.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}</select>
+        <label className="lbl">Title</label><input className="inp" value={ne.title} onChange={e=>setNe({...ne,title:e.target.value})} placeholder="e.g. Submit AHA Poster Abstract"/>
+        <label className="lbl">Deadline</label><input className="inp" type="date" value={ne.deadline} onChange={e=>setNe({...ne,deadline:e.target.value})}/>
+        <label className="lbl">Remind me _ days before</label><input className="inp" type="number" value={ne.reminderDays} onChange={e=>setNe({...ne,reminderDays:parseInt(e.target.value)||7})}/>
+        <label className="lbl">Notes</label><input className="inp" value={ne.detail} onChange={e=>setNe({...ne,detail:e.target.value})} placeholder="Conference name, link..."/>
+        <button className="btn" style={{background:"#1e3a5f",width:"100%",padding:10}} onClick={()=>{if(!ne.title||!ne.deadline)return;setEvents([...events,{...ne,id:Date.now(),archived:false}]);setModal(null);}}>Add</button>
+      </Modal>}
+
+      {modal==="prot"&&<Modal title="➕ Add Protocol" onClose={()=>setModal(null)}>
+        <label className="lbl">Protocol name</label><input className="inp" value={np.title} onChange={e=>setNp({...np,title:e.target.value})} placeholder="e.g. iPSC Cardioid Differentiation"/>
+        <label className="lbl">Category (optional)</label><input className="inp" value={np.category} onChange={e=>setNp({...np,category:e.target.value})} placeholder="e.g. Wet Lab / Imaging / Staining"/>
+        <button className="btn" style={{background:"#1e3a5f",width:"100%",padding:10}} onClick={()=>{if(!np.title)return;setProtocols([...protocols,{...np,id:Date.now(),content:""}]);setModal(null);}}>Add Protocol</button>
+      </Modal>}
+
+      {modal==="lib"&&<Modal title="➕ Add Library Note" onClose={()=>setModal(null)}>
+        <label className="lbl">Title</label><input className="inp" value={nl.title} onChange={e=>setNl({...nl,title:e.target.value})} placeholder="e.g. Paper summary: Nature 2024"/>
+        <label className="lbl">Tag (optional)</label><input className="inp" value={nl.tag} onChange={e=>setNl({...nl,tag:e.target.value})} placeholder="e.g. Paper / Lecture / Idea"/>
+        <button className="btn" style={{background:"#8b5cf6",width:"100%",padding:10}} onClick={()=>{if(!nl.title)return;setLibNotes([...libNotes,{...nl,id:Date.now(),date:today(),content:""}]);setModal(null);}}>Add Note</button>
       </Modal>}
 
     </div>
   );
 }
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
 </html>

@@ -232,10 +232,16 @@ function Modal({title,onClose,children}){
   );
 }
 
-// ── Sidebar ───────────────────────────────────────────────────────────
+// Get Monday of the week for a given date
+const getMondayOfWeek=s=>{const d=parse(s),day=d.getDay(),delta=day===0?-6:1-day;d.setDate(d.getDate()+delta);return fmt(d);};
+const fmtWeek=s=>{const m=parse(s),e=new Date(m);e.setDate(e.getDate()+4);return `Week of ${m.toLocaleDateString("en",{month:"short",day:"numeric"})} – ${e.toLocaleDateString("en",{month:"short",day:"numeric",year:"numeric"})}`;};
+
+
 const NAV=[
   {id:"planner", icon:"📋", label:"Daily Plan",  section:"MAIN"},
-  {id:"meetings",icon:"🧪", label:"Meetings"},
+  {id:"ai_meet",  icon:"🤖", label:"AI Meeting",         section:"MEETINGS"},
+  {id:"card_meet",icon:"🫀", label:"Cardioid Meeting"},
+  {id:"fri_meet", icon:"🎤", label:"Friday Presentation"},
   {id:"events",  icon:"🎯", label:"Deadlines"},
   {id:"cells",   icon:"🧫", label:"Cell Culture"},
   {id:"orgs",    icon:"🫀", label:"Organoids"},
@@ -332,7 +338,7 @@ function App(){
     const a=document.createElement("a");a.href="data:text/calendar;charset=utf-8,"+encodeURIComponent(`BEGIN:VCALENDAR\nVERSION:2.0\n${evts.join("\n")}\nEND:VCALENDAR`);a.download=`phd-${date}.ics`;a.click();
   };
 
-  const tabLabel=NAV.find(n=>n.id===tab);
+  const tabLabel=NAV.find(n=>n.id===tab)||{icon:"",label:""};
 
   return(
     <div id="app">
@@ -407,35 +413,94 @@ function App(){
             </div>
           </>)}
 
-          {/* ══ MEETINGS ══ */}
-          {tab==="meetings"&&<div className="card">
-            <div style={{fontWeight:700,fontSize:16,marginBottom:14}}>🧪 Weekly Lab Meetings</div>
-            <div className="card" style={{background:"#eff6ff",border:"1px solid #bfdbfe"}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><span className="tag" style={{background:"#1d4ed8"}}>Every Monday</span><span style={{fontWeight:700}}>Individual Meeting</span></div>
-              <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-                {[["mon_ai","🤖 AI Direction","#6366f1"],["mon_card","🫀 Cardioid Direction","#0891b2"]].map(([k,lbl,c])=>(
-                  <div key={k} style={{flex:1,minWidth:220,background:"white",borderRadius:9,padding:"12px",border:"1px solid #bfdbfe"}}>
-                    <div className="tag" style={{background:c,marginBottom:10}}>{lbl}</div>
-                    <div className="lbl">This week's update</div>
-                    <RTE value={notes[`${k}_${date}`]||""} onChange={v=>setNote(`${k}_${date}`,v)} placeholder="Progress, blockers, questions..." minH={120}/>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="card" style={{background:"#fdf4ff",border:"1px solid #e9d5ff",marginBottom:0}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><span className="tag" style={{background:"#9333ea"}}>Every Friday</span><span style={{fontWeight:700}}>Group Presentation</span></div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:"white",borderRadius:9,padding:"12px 14px",border:"1px solid #e9d5ff",marginBottom:meeting.myTurnFriday?10:0}}>
-                <div><div style={{fontWeight:600,marginBottom:3}}>Is it your turn this Friday?</div><div style={{fontSize:12,color:"#64748b"}}>Toggle on when it's your week</div></div>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{fontSize:13,fontWeight:600,color:meeting.myTurnFriday?"#ea580c":"#16a34a"}}>{meeting.myTurnFriday?"🔴 My Turn!":"✅ Not my turn"}</span>
-                  <button className="btn" style={{background:meeting.myTurnFriday?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurnFriday:!meeting.myTurnFriday})}>{meeting.myTurnFriday?"Mark Done":"It's My Turn"}</button>
+          {/* ══ AI MEETING ══ */}
+          {(tab==="ai_meet"||tab==="card_meet")&&(()=>{
+            const isAI=tab==="ai_meet";
+            const key=isAI?"mon_ai":"mon_card";
+            const color=isAI?"#6366f1":"#0891b2";
+            const icon=isAI?"🤖":"🫀";
+            const label=isAI?"AI Direction":"Cardioid Direction";
+            const weekKey=getMondayOfWeek(date);
+            const noteKey=`${key}_${weekKey}`;
+            // Past weeks that have content
+            const past=Object.entries(notes)
+              .filter(([k,v])=>v&&k.startsWith(key+"_")&&k!==noteKey)
+              .sort(([a],[b])=>b.localeCompare(a));
+            return(<>
+              <div className="card">
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+                  <span className="tag" style={{background:color}}>{icon} {label}</span>
+                  <span style={{fontSize:13,color:"#64748b"}}>{fmtWeek(weekKey)}</span>
                 </div>
+                <div className="lbl">This week's update</div>
+                <RTE value={notes[noteKey]||""} onChange={v=>setNote(noteKey,v)} placeholder="Progress, blockers, questions to ask PI..." minH={280}/>
+                <div style={{fontSize:11,color:"#94a3b8",marginTop:6}}>Auto-saved ✓</div>
               </div>
-              {meeting.myTurnFriday&&<div style={{background:"white",borderRadius:9,padding:"12px",border:"1px solid #e9d5ff"}}>
-                <div className="lbl">📊 Presentation outline</div>
-                <RTE value={notes["fri_present"]||""} onChange={v=>setNote("fri_present",v)} placeholder="Key results, slides outline, questions..." minH={150}/>
+              {past.length>0&&<div className="card">
+                <div style={{fontWeight:700,fontSize:14,marginBottom:12,color:"#374151"}}>🗂 Past Weekly Updates ({past.length})</div>
+                {past.map(([k,v])=>{
+                  const wk=k.replace(key+"_","");
+                  const preview=v.replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,120);
+                  const isOpen=expandProt===k;
+                  return<div key={k} style={{borderRadius:9,border:"1px solid #e2e8f0",marginBottom:8,overflow:"hidden"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 13px",background:"#f8fafc",cursor:"pointer"}} onClick={()=>setExpandProt(isOpen?null:k)}>
+                      <div>
+                        <span style={{fontWeight:700,fontSize:13,color:"#1e3a5f"}}>{fmtWeek(wk)}</span>
+                        {!isOpen&&<div style={{fontSize:12,color:"#64748b",marginTop:2}}>{preview}{preview.length===120?"…":""}</div>}
+                      </div>
+                      <span style={{color:"#6366f1",fontSize:13,fontWeight:600,marginLeft:10}}>{isOpen?"▲":"▼"}</span>
+                    </div>
+                    {isOpen&&<div style={{padding:"12px"}}>
+                      <RTE value={notes[k]||""} onChange={v=>setNote(k,v)} placeholder="" minH={160}/>
+                    </div>}
+                  </div>;
+                })}
               </div>}
+            </>);
+          })()}
+
+          {/* ══ FRIDAY PRESENTATION ══ */}
+          {tab==="fri_meet"&&<div className="card">
+            <div style={{fontWeight:700,fontSize:16,marginBottom:14}}>🎤 Friday Group Presentation</div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:meeting.myTurnFriday?"#fff7ed":"#f0fdf4",borderRadius:10,padding:"12px 14px",border:`1px solid ${meeting.myTurnFriday?"#fed7aa":"#bbf7d0"}`,marginBottom:12}}>
+              <div>
+                <div style={{fontWeight:600,marginBottom:3}}>Is it your turn this Friday?</div>
+                <div style={{fontSize:12,color:"#64748b"}}>Toggle on when it's your week to present</div>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <span style={{fontSize:13,fontWeight:600,color:meeting.myTurnFriday?"#ea580c":"#16a34a"}}>{meeting.myTurnFriday?"🔴 My Turn!":"✅ Not my turn"}</span>
+                <button className="btn" style={{background:meeting.myTurnFriday?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurnFriday:!meeting.myTurnFriday})}>{meeting.myTurnFriday?"Mark Done":"It's My Turn"}</button>
+              </div>
             </div>
+            {meeting.myTurnFriday&&<div style={{marginBottom:12}}>
+              <div className="lbl">📊 Presentation outline for this Friday</div>
+              <RTE value={notes[`fri_${getMondayOfWeek(date)}`]||""} onChange={v=>setNote(`fri_${getMondayOfWeek(date)}`,v)} placeholder="Key results, slide outline, questions to address..." minH={200}/>
+            </div>}
+            {/* Past presentations */}
+            {(()=>{
+              const past=Object.entries(notes).filter(([k,v])=>v&&k.startsWith("fri_")&&k!==`fri_${getMondayOfWeek(date)}`).sort(([a],[b])=>b.localeCompare(a));
+              if(!past.length)return null;
+              return<div style={{marginTop:4}}>
+                <div style={{fontWeight:700,fontSize:14,marginBottom:10,color:"#374151"}}>🗂 Past Presentations ({past.length})</div>
+                {past.map(([k,v])=>{
+                  const wk=k.replace("fri_","");
+                  const preview=v.replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,100);
+                  const isOpen=expandLib===k;
+                  return<div key={k} style={{borderRadius:9,border:"1px solid #e2e8f0",marginBottom:8,overflow:"hidden"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 13px",background:"#f8fafc",cursor:"pointer"}} onClick={()=>setExpandLib(isOpen?null:k)}>
+                      <div>
+                        <span style={{fontWeight:700,fontSize:13,color:"#1e3a5f"}}>{fmtWeek(wk)}</span>
+                        {!isOpen&&<div style={{fontSize:12,color:"#64748b",marginTop:2}}>{preview}{preview.length===100?"…":""}</div>}
+                      </div>
+                      <span style={{color:"#9333ea",fontSize:13,fontWeight:600,marginLeft:10}}>{isOpen?"▲":"▼"}</span>
+                    </div>
+                    {isOpen&&<div style={{padding:"12px"}}>
+                      <RTE value={notes[k]||""} onChange={v=>setNote(k,v)} placeholder="" minH={140}/>
+                    </div>}
+                  </div>;
+                })}
+              </div>;
+            })()}
           </div>}
 
           {/* ══ EVENTS ══ */}

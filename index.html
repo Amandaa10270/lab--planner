@@ -98,14 +98,24 @@ function RTE({value,onChange,placeholder,minH=120}){
 
   const fire=useCallback(()=>{skip.current=true;onChange(ref.current.innerHTML);},[onChange]);
 
-  // Attach checkbox + delete listeners to all cl-items
+  // Attach checkbox + delete + keydown listeners to all cl-items
   const bind=useCallback(()=>{
     if(!ref.current)return;
     ref.current.querySelectorAll(".cl-item").forEach(item=>{
       const cb=item.querySelector("input[type=checkbox]");
       const del=item.querySelector(".cl-del");
+      // find the text span (may or may not have cl-text class in old saved content)
+      let sp=item.querySelector(".cl-text");
+      if(!sp){sp=item.querySelector("span:not(.cl-del)");if(sp)sp.className="cl-text";sp?.setAttribute("contenteditable","true");}
       if(cb&&!cb._b){cb._b=true;cb.addEventListener("change",()=>{item.classList.toggle("done",cb.checked);fire();});}
       if(del&&!del._b){del._b=true;del.addEventListener("mousedown",e=>{e.preventDefault();item.remove();fire();});}
+      if(sp&&!sp._kb){sp._kb=true;sp.addEventListener("keydown",e=>{
+        if(e.key==="Backspace"){
+          const txt=sp.innerText.replace(/\u00a0/g,"").trim();
+          if(txt===""||txt==="\n"){e.preventDefault();const prev=item.previousElementSibling;item.remove();if(prev){const r=document.createRange(),s=window.getSelection();r.selectNodeContents(prev);r.collapse(false);s.removeAllRanges();s.addRange(r);}fire();}
+        }
+        if(e.key==="Enter"){e.preventDefault();const next=makeClItem();item.after(next);focusSpan(next);fire();}
+      });}
     });
   },[fire]);
 
@@ -161,26 +171,13 @@ function RTE({value,onChange,placeholder,minH=120}){
   };
 
   const handleKeyDown=e=>{
+    // Only handle special cases for cl-items not already handled by span listener
     const item=getClItem();
     if(!item)return;
     const span=item.querySelector(".cl-text");
     const isEmpty=!span||span.innerText.replace(/\u00a0/g,"").trim()==="";
-
-    if(e.key==="Backspace"&&isEmpty){
-      e.preventDefault();
-      const prev=item.previousElementSibling;
-      item.remove();
-      // move cursor to end of previous element
-      if(prev){const r=document.createRange(),s=window.getSelection();r.selectNodeContents(prev);r.collapse(false);s.removeAllRanges();s.addRange(r);}
-      fire();return;
-    }
-    if(e.key==="Enter"){
-      e.preventDefault();
-      const next=makeClItem();
-      item.after(next);
-      focusSpan(next);
-      fire();return;
-    }
+    if(e.key==="Backspace"&&isEmpty){e.preventDefault();const prev=item.previousElementSibling;item.remove();if(prev){const r=document.createRange(),s=window.getSelection();r.selectNodeContents(prev);r.collapse(false);s.removeAllRanges();s.addRange(r);}fire();}
+    if(e.key==="Enter"&&item){e.preventDefault();const next=makeClItem();item.after(next);focusSpan(next);fire();}
   };
 
   const handleInput=()=>{bind();fire();};

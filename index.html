@@ -52,12 +52,43 @@ input,select,textarea,button{font-family:inherit;}
 .cl-box.chk::after{content:'✓';}
 .cl-txt{flex:1;outline:none;min-width:4px;display:inline;}
 .cl-row.done .cl-txt{text-decoration:line-through;color:#94a3b8;}
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
 @media(max-width:600px){#sb{width:50px;min-width:50px;}#sb .hl{display:none;}#body{padding:10px 10px 28px;}}
 </style>
 </head>
 <body><div id="root"></div>
 <script type="text/babel">
-const {useState,useEffect,useRef}=React;
+const {useState,useEffect,useRef,useCallback}=React;
+
+/* ── GitHub Gist Sync ── */
+const GIST_TOKEN="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";
+const GIST_FILE="phd-planner-data.json";
+
+async function gistLoad(){
+  const id=localStorage.getItem("gist_id");
+  if(!id)return null;
+  try{
+    const r=await fetch(`https://api.github.com/gists/${id}`,{headers:{Authorization:`token ${GIST_TOKEN}`}});
+    if(!r.ok)return null;
+    const d=await r.json();
+    const c=d.files?.[GIST_FILE]?.content;
+    return c?JSON.parse(c):null;
+  }catch{return null;}
+}
+
+async function gistSave(data){
+  const id=localStorage.getItem("gist_id");
+  const body={files:{[GIST_FILE]:{content:JSON.stringify(data)}}};
+  if(id){
+    await fetch(`https://api.github.com/gists/${id}`,{method:"PATCH",headers:{Authorization:`token ${GIST_TOKEN}`,"Content-Type":"application/json"},body:JSON.stringify(body)});
+  }else{
+    const r=await fetch("https://api.github.com/gists",{method:"POST",headers:{Authorization:`token ${GIST_TOKEN}`,"Content-Type":"application/json"},body:JSON.stringify({...body,description:"PhD Planner Data",public:false})});
+    const d=await r.json();
+    if(d.id)localStorage.setItem("gist_id",d.id);
+  }
+}
+
+/* ── Helpers ── */
 const fmt=d=>d.toISOString().split("T")[0];
 const parseD=s=>new Date(s+"T12:00:00");
 const addDays=(s,n)=>{const d=parseD(s);d.setDate(d.getDate()+n);return fmt(d);};
@@ -66,14 +97,26 @@ const todayStr=()=>fmt(new Date());
 const getMon=s=>{const d=parseD(s),dy=d.getDay(),dl=dy===0?-6:1-dy;d.setDate(d.getDate()+dl);return fmt(d);};
 const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}};
 
-const getCellMedia=d=>({0:"Ri + E8",1:"E8",2:"E8F",3:"E8F"}[d]??null);
+/* ── Cell Media Logic ── */
+// mediaType: "E8" = change every day | "E8F" = change every 2 days
+const getCellMedia=(day,mediaType="E8F")=>{
+  if(day===0)return"Ri + E8";
+  if(day<0||day>=4)return null;
+  if(mediaType==="E8")return"E8"; // every day
+  // E8F: change on D1, then every 2 days: D1, D3
+  if(day===1||day===3)return"E8F";
+  return null; // D2 no change needed with E8F
+};
+
+/* ── Other Protocols ── */
 const getNormal=d=>{const m={"-3":"Seeding","-2":"E8F","-1":"E8F","0":"CHIR","1":"-I","2":"IWP4","4":"-I"};if(m[d]!==undefined)return m[d];if(d>=6&&d<=21&&(d-6)%2===0)return"+C (media change)";return null;};
 const getVasc=d=>{const m={"-3":"Seeding","-2":"E8F","-1":"E8F","0":"CHIR","1":"-I+BWP4+FGF2","2":"IWP4+BWP4+FGF2","4":"-I+BWP4+FGF2","5":"FGF2+VEGF++C"};if(m[d]!==undefined)return m[d];if(d>=7&&d<=21&&(d-7)%2===0)return"+C+FGF2+VEGF+A8301+SB431542";return null;};
 const TTYPES=[{id:"coding",label:"💻 Coding",color:"#6366f1"},{id:"ta",label:"📚 TA Work",color:"#f59e0b"},{id:"course",label:"🎓 Course",color:"#10b981"},{id:"meeting",label:"👥 Meeting",color:"#3b82f6"},{id:"other",label:"📌 Other",color:"#8b5cf6"}];
 const ECATS=[{id:"conference",label:"🏛 Conference",color:"#6366f1"},{id:"poster",label:"🖼 Poster",color:"#f59e0b"},{id:"paper",label:"📄 Paper",color:"#10b981"},{id:"admin",label:"📋 Admin",color:"#3b82f6"},{id:"other",label:"📌 Other",color:"#8b5cf6"}];
 const HLS=["#fef08a","#bbf7d0","#bfdbfe","#fecaca","#e9d5ff","#fed7aa"];
+const TASK_STATUS=[{id:"todo",label:"To Do",color:"#94a3b8"},{id:"doing",label:"In Progress",color:"#f59e0b"},{id:"done",label:"Done",color:"#10b981"}];
 
-/* RTE */
+/* ── RTE ── */
 function RTE({value,onChange,placeholder,minH=120}){
   const ref=useRef(null);
   const skip=useRef(false);
@@ -83,61 +126,29 @@ function RTE({value,onChange,placeholder,minH=120}){
   useEffect(()=>{if(!ref.current||skip.current)return;ref.current.innerHTML=value||"";},[value]);
   useEffect(()=>{skip.current=false;});
   const exec=(cmd,v=null)=>{document.execCommand(cmd,false,v);ref.current?.focus();};
-  const makeRow=()=>{
-    const row=document.createElement("div");row.className="cl-row";
-    const box=document.createElement("span");box.className="cl-box";box.contentEditable="false";
-    const txt=document.createElement("span");txt.className="cl-txt";txt.contentEditable="true";txt.innerHTML="<br>";
-    row.append(box,txt);return row;
-  };
+  const makeRow=()=>{const row=document.createElement("div");row.className="cl-row";const box=document.createElement("span");box.className="cl-box";box.contentEditable="false";const txt=document.createElement("span");txt.className="cl-txt";txt.contentEditable="true";txt.innerHTML="<br>";row.append(box,txt);return row;};
   useEffect(()=>{
     const el=ref.current;if(!el)return;
-    const onMD=e=>{
-      if(e.target.classList.contains("cl-box")){
-        e.preventDefault();
-        const row=e.target.closest(".cl-row");
-        e.target.classList.toggle("chk");
-        row?.classList.toggle("done",e.target.classList.contains("chk"));
-        fire();
-      }
-    };
+    const onMD=e=>{if(e.target.classList.contains("cl-box")){e.preventDefault();const row=e.target.closest(".cl-row");e.target.classList.toggle("chk");row?.classList.toggle("done",e.target.classList.contains("chk"));fire();}};
     const onKD=e=>{
       const sel=window.getSelection();if(!sel||!sel.rangeCount)return;
       let n=sel.getRangeAt(0).startContainer,row=null;
       while(n&&n!==el){if(n.classList?.contains("cl-row")){row=n;break;}n=n.parentElement;}
       if(!row)return;
-      const txt=row.querySelector(".cl-txt");
-      const empty=!txt||txt.innerText.replace(/[\u00a0\n\r]/g,"").trim()==="";
-      if(e.key==="Backspace"&&empty){
-        e.preventDefault();const prev=row.previousElementSibling;row.remove();
-        if(prev){const r=document.createRange(),s=window.getSelection();r.selectNodeContents(prev);r.collapse(false);s.removeAllRanges();s.addRange(r);}
-        fire();
-      }else if(e.key==="Enter"){
-        e.preventDefault();const next=makeRow();row.after(next);
-        const t=next.querySelector(".cl-txt");t.focus();
-        const r=document.createRange(),s=window.getSelection();r.selectNodeContents(t);r.collapse(false);s.removeAllRanges();s.addRange(r);
-        fire();
-      }
+      const txt=row.querySelector(".cl-txt"),empty=!txt||txt.innerText.replace(/[\u00a0\n\r]/g,"").trim()==="";
+      if(e.key==="Backspace"&&empty){e.preventDefault();const prev=row.previousElementSibling;row.remove();if(prev){const r=document.createRange(),s=window.getSelection();r.selectNodeContents(prev);r.collapse(false);s.removeAllRanges();s.addRange(r);}fire();}
+      else if(e.key==="Enter"){e.preventDefault();const next=makeRow();row.after(next);const t=next.querySelector(".cl-txt");t.focus();const r=document.createRange(),s=window.getSelection();r.selectNodeContents(t);r.collapse(false);s.removeAllRanges();s.addRange(r);fire();}
     };
     el.addEventListener("mousedown",onMD);el.addEventListener("keydown",onKD);
     return()=>{el.removeEventListener("mousedown",onMD);el.removeEventListener("keydown",onKD);};
   },[]);
-  const addCL=()=>{
-    const row=makeRow();const sel=window.getSelection();
-    let cur=null,n=sel?.getRangeAt(0)?.startContainer;
-    while(n&&n!==ref.current){if(n.classList?.contains("cl-row")){cur=n;break;}n=n.parentElement;}
-    if(cur)cur.after(row);
-    else if(sel?.rangeCount){const r=sel.getRangeAt(0);r.collapse(false);r.insertNode(row);r.setStartAfter(row);sel.removeAllRanges();sel.addRange(r);}
-    else ref.current.appendChild(row);
-    const t=row.querySelector(".cl-txt");t.focus();
-    const r=document.createRange(),s=window.getSelection();r.selectNodeContents(t);r.collapse(false);s.removeAllRanges();s.addRange(r);
-    fire();
-  };
+  const addCL=()=>{const row=makeRow();const sel=window.getSelection();let cur=null,n=sel?.getRangeAt(0)?.startContainer;while(n&&n!==ref.current){if(n.classList?.contains("cl-row")){cur=n;break;}n=n.parentElement;}if(cur)cur.after(row);else if(sel?.rangeCount){const r=sel.getRangeAt(0);r.collapse(false);r.insertNode(row);r.setStartAfter(row);sel.removeAllRanges();sel.addRange(r);}else ref.current.appendChild(row);const t=row.querySelector(".cl-txt");t.focus();const r=document.createRange(),s=window.getSelection();r.selectNodeContents(t);r.collapse(false);s.removeAllRanges();s.addRange(r);fire();};
   const T=({cmd,v,title,ch})=><button title={title} onMouseDown={e=>{e.preventDefault();exec(cmd,v??null);}}>{ch}</button>;
   return(
     <div className="rte-wrap">
       <div className="rte-bar">
         <T cmd="bold" title="Bold" ch={<b>B</b>}/><T cmd="italic" title="Italic" ch={<i>I</i>}/><T cmd="underline" title="Underline" ch={<u>U</u>}/><T cmd="strikeThrough" title="Strike" ch={<s>S</s>}/>
-        <T cmd="superscript" title="Superscript" ch="x²"/><T cmd="subscript" title="Subscript" ch="x₂"/>
+        <T cmd="superscript" title="Sup" ch="x²"/><T cmd="subscript" title="Sub" ch="x₂"/>
         <div className="sep"/>
         {HLS.map(c=><button key={c} onMouseDown={e=>{e.preventDefault();exec("hiliteColor",c);}} style={{background:c,border:"1px solid #e2e8f0",borderRadius:4,width:16,height:16,padding:0,cursor:"pointer"}}/>)}
         <div className="sep"/>
@@ -155,7 +166,7 @@ function RTE({value,onChange,placeholder,minH=120}){
   );
 }
 
-/* Modal */
+/* ── Modal ── */
 function Modal({title,onClose,children}){
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999}}>
@@ -170,7 +181,7 @@ function Modal({title,onClose,children}){
   );
 }
 
-/* Meeting Tab */
+/* ── Meeting Tab ── */
 function MeetingTab({dirKey,color,icon,label,notes,setNotes,curDate}){
   const [adding,setAdding]=useState(false);
   const [newDate,setNewDate]=useState(getMon(curDate));
@@ -191,32 +202,28 @@ function MeetingTab({dirKey,color,icon,label,notes,setNotes,curDate}){
       </div>}
     </div>
     {entries.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No sessions yet — click "+ Add Session"</div>}
-    {entries.map(e=>{
-      const isOpen=openId===e.date;
-      return(
-        <div key={e.date} className="card" style={{padding:0,overflow:"hidden"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setOpenId(isOpen?null:e.date)}>
-            <div><span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.date}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{parseD(e.date).toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span></div>
-            <div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.date);}}>Delete</button><span style={{color:color,fontWeight:700}}>{isOpen?"▲":"▼"}</span></div>
-          </div>
-          {isOpen&&<div style={{padding:14}}>
-            <div style={{marginBottom:14}}>
-              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}><span style={{background:"#e0e7ff",color:"#4338ca",borderRadius:6,padding:"2px 9px",fontSize:12,fontWeight:700}}>📊 My Report</span><span style={{fontSize:11,color:"#94a3b8"}}>Progress · Results · Questions</span></div>
-              <RTE value={notes[`${dirKey}_report_${e.date}`]||""} onChange={v=>setNote(`${dirKey}_report_${e.date}`,v)} placeholder="What did I present? Key results, blockers, questions..." minH={150}/>
-            </div>
-            <div style={{display:"flex",alignItems:"center",gap:10,margin:"6px 0 14px"}}><div style={{flex:1,height:1,background:"#e2e8f0"}}/><span style={{fontSize:10,color:"#94a3b8",fontWeight:700,letterSpacing:".06em"}}>SUPERVISOR FEEDBACK</span><div style={{flex:1,height:1,background:"#e2e8f0"}}/></div>
-            <div>
-              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}><span style={{background:"#dcfce7",color:"#15803d",borderRadius:6,padding:"2px 9px",fontSize:12,fontWeight:700}}>💬 Feedback</span><span style={{fontSize:11,color:"#94a3b8"}}>Comments · Next steps · Action items</span></div>
-              <RTE value={notes[`${dirKey}_feedback_${e.date}`]||""} onChange={v=>setNote(`${dirKey}_feedback_${e.date}`,v)} placeholder="Supervisor's comments, suggested next steps..." minH={130}/>
-            </div>
-          </div>}
+    {entries.map(e=>{const isOpen=openId===e.date;return(
+      <div key={e.date} className="card" style={{padding:0,overflow:"hidden"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setOpenId(isOpen?null:e.date)}>
+          <div><span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.date}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{parseD(e.date).toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span></div>
+          <div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.date);}}>Delete</button><span style={{color:color,fontWeight:700}}>{isOpen?"▲":"▼"}</span></div>
         </div>
-      );
-    })}
+        {isOpen&&<div style={{padding:14}}>
+          <div style={{marginBottom:14}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}><span style={{background:"#e0e7ff",color:"#4338ca",borderRadius:6,padding:"2px 9px",fontSize:12,fontWeight:700}}>📊 My Report</span><span style={{fontSize:11,color:"#94a3b8"}}>Progress · Results · Questions</span></div>
+            <RTE value={notes[`${dirKey}_report_${e.date}`]||""} onChange={v=>setNote(`${dirKey}_report_${e.date}`,v)} placeholder="What did I present? Key results, blockers, questions..." minH={150}/>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:10,margin:"6px 0 14px"}}><div style={{flex:1,height:1,background:"#e2e8f0"}}/><span style={{fontSize:10,color:"#94a3b8",fontWeight:700,letterSpacing:".06em"}}>SUPERVISOR FEEDBACK</span><div style={{flex:1,height:1,background:"#e2e8f0"}}/></div>
+          <div>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}><span style={{background:"#dcfce7",color:"#15803d",borderRadius:6,padding:"2px 9px",fontSize:12,fontWeight:700}}>💬 Feedback</span><span style={{fontSize:11,color:"#94a3b8"}}>Comments · Next steps · Action items</span></div>
+            <RTE value={notes[`${dirKey}_feedback_${e.date}`]||""} onChange={v=>setNote(`${dirKey}_feedback_${e.date}`,v)} placeholder="Supervisor's comments, suggested next steps..." minH={130}/>
+          </div>
+        </div>}
+      </div>);})}
   </>);
 }
 
-/* Friday Tab */
+/* ── Friday Tab ── */
 function FridayTab({notes,setNotes,meeting,setMeeting,curDate}){
   const [adding,setAdding]=useState(false);
   const [newDate,setNewDate]=useState(curDate);
@@ -232,7 +239,7 @@ function FridayTab({notes,setNotes,meeting,setMeeting,curDate}){
         <button className="btn" style={{background:"#9333ea",fontSize:12,padding:"5px 11px"}} onClick={()=>setAdding(!adding)}>+ Add Session</button>
       </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:12,background:meeting.myTurn?"#fff7ed":"#f0fdf4",borderRadius:9,padding:"10px 13px",border:`1px solid ${meeting.myTurn?"#fed7aa":"#bbf7d0"}`}}>
-        <div><div style={{fontWeight:600,fontSize:14,color:meeting.myTurn?"#c2410c":"#15803d"}}>Is it your turn this Friday?</div><div style={{fontSize:12,color:"#64748b",marginTop:2}}>Toggle on when it's your week</div></div>
+        <div><div style={{fontWeight:600,fontSize:14,color:meeting.myTurn?"#c2410c":"#15803d"}}>Is it your turn this Friday?</div><div style={{fontSize:12,color:"#64748b",marginTop:2}}>Toggle when it's your week</div></div>
         <button className="btn" style={{background:meeting.myTurn?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurn:!meeting.myTurn})}>{meeting.myTurn?"✓ Done":"My Turn"}</button>
       </div>
       {adding&&<div style={{marginTop:12,padding:12,background:"#f8fafc",borderRadius:9,border:"1px solid #e2e8f0"}}>
@@ -241,22 +248,18 @@ function FridayTab({notes,setNotes,meeting,setMeeting,curDate}){
       </div>}
     </div>
     {entries.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No presentation records yet</div>}
-    {entries.map(e=>{
-      const isOpen=openId===e.date;
-      return(
-        <div key={e.date} className="card" style={{padding:0,overflow:"hidden"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setOpenId(isOpen?null:e.date)}>
-            <div><span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.date}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{parseD(e.date).toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span></div>
-            <div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.date);}}>Delete</button><span style={{color:"#9333ea",fontWeight:700}}>{isOpen?"▲":"▼"}</span></div>
-          </div>
-          {isOpen&&<div style={{padding:14}}><div className="lbl">📊 Presentation notes</div><RTE value={notes[`fri_pres_${e.date}`]||""} onChange={v=>setNote(`fri_pres_${e.date}`,v)} placeholder="Key results, slide outline, questions..." minH={200}/></div>}
+    {entries.map(e=>{const isOpen=openId===e.date;return(
+      <div key={e.date} className="card" style={{padding:0,overflow:"hidden"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setOpenId(isOpen?null:e.date)}>
+          <div><span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.date}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{parseD(e.date).toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span></div>
+          <div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.date);}}>Delete</button><span style={{color:"#9333ea",fontWeight:700}}>{isOpen?"▲":"▼"}</span></div>
         </div>
-      );
-    })}
+        {isOpen&&<div style={{padding:14}}><div className="lbl">📊 Presentation notes</div><RTE value={notes[`fri_pres_${e.date}`]||""} onChange={v=>setNote(`fri_pres_${e.date}`,v)} placeholder="Key results, slide outline, questions..." minH={200}/></div>}
+      </div>);})}
   </>);
 }
 
-/* NAV */
+/* ── NAV ── */
 const NAV=[
   {id:"planner",icon:"📋",label:"Daily Plan",sec:"MAIN"},
   {id:"ai_meet",icon:"🤖",label:"AI Meeting",sec:"MEETINGS"},
@@ -265,48 +268,97 @@ const NAV=[
   {id:"events",icon:"🎯",label:"Deadlines",sec:"TRACKING"},
   {id:"cells",icon:"🧫",label:"Cell Culture"},
   {id:"orgs",icon:"🫀",label:"Organoids"},
+  {id:"coding_tasks",icon:"💻",label:"Coding Tasks",sec:"CODING"},
   {id:"notes",icon:"📝",label:"Daily Notes",sec:"NOTES"},
   {id:"protocols",icon:"📂",label:"Protocols",sec:"LIBRARY"},
   {id:"library",icon:"📚",label:"Notes Library"},
 ];
 
-/* App */
+const EMPTY={cells:[],orgs:[],ptasks:{},notes:{},events:[],meeting:{myTurn:false},protocols:[],libNotes:[],done:{},codingProjects:[]};
+
+/* ── App ── */
 function App(){
   const [tab,setTab]=useState("planner");
   const [col,setCol]=useState(false);
   const [date,setDate]=useState(todayStr());
-  const [cells,setCells]=useState(()=>LS.get("p_cells",[]));
-  const [orgs,setOrgs]=useState(()=>LS.get("p_orgs",[]));
-  const [ptasks,setPtasks]=useState(()=>LS.get("p_ptasks",{}));
-  const [notes,setNotes]=useState(()=>LS.get("p_notes",{}));
-  const [events,setEvents]=useState(()=>LS.get("p_events",[]));
-  const [meeting,setMeeting]=useState(()=>LS.get("p_meet",{myTurn:false}));
-  const [protocols,setProtocols]=useState(()=>LS.get("p_prot",[]));
-  const [libNotes,setLibNotes]=useState(()=>LS.get("p_lib",[]));
-  const [done,setDone]=useState(()=>LS.get("p_done",{}));
+  const [syncStatus,setSyncStatus]=useState("loading"); // loading | synced | saving | error
+  const [loaded,setLoaded]=useState(false);
+
+  const [cells,setCells]=useState([]);
+  const [orgs,setOrgs]=useState([]);
+  const [ptasks,setPtasks]=useState({});
+  const [notes,setNotes]=useState({});
+  const [events,setEvents]=useState([]);
+  const [meeting,setMeeting]=useState({myTurn:false});
+  const [protocols,setProtocols]=useState([]);
+  const [libNotes,setLibNotes]=useState([]);
+  const [done,setDone]=useState({});
+  const [codingProjects,setCodingProjects]=useState([]);
+
   const [modal,setModal]=useState(null);
   const [expLib,setExpLib]=useState(null);
   const [expProt,setExpProt]=useState(null);
-
-  // form states
+  const [expCoding,setExpCoding]=useState(null);
   const [nt,setNt]=useState({type:"coding",title:"",time:"09:00",duration:60,detail:""});
   const [ne,setNe]=useState({cat:"poster",title:"",deadline:"",reminderDays:7,detail:""});
-  const [nc,setNc]=useState({name:"",passage:"",passageDate:""});
+  const [nc,setNc]=useState({name:"",passage:"",passageDate:"",mediaType:"E8F"});
   const [no,setNo]=useState({name:"",type:"normal",format:"gel",seedDate:""});
   const [np,setNp]=useState({title:"",category:""});
   const [nl,setNl]=useState({title:"",tag:""});
+  const [ncp,setNcp]=useState({title:"",color:"#6366f1"});
+  const [nct,setNct]=useState({title:"",status:"todo",detail:"",deadline:""});
   const [editCellIdx,setEditCellIdx]=useState(null);
   const [editOrgIdx,setEditOrgIdx]=useState(null);
+  const [editTaskCtx,setEditTaskCtx]=useState(null); // {projIdx, taskIdx}
 
-  useEffect(()=>LS.set("p_cells",cells),[cells]);
-  useEffect(()=>LS.set("p_orgs",orgs),[orgs]);
-  useEffect(()=>LS.set("p_ptasks",ptasks),[ptasks]);
-  useEffect(()=>LS.set("p_notes",notes),[notes]);
-  useEffect(()=>LS.set("p_events",events),[events]);
-  useEffect(()=>LS.set("p_meet",meeting),[meeting]);
-  useEffect(()=>LS.set("p_prot",protocols),[protocols]);
-  useEffect(()=>LS.set("p_lib",libNotes),[libNotes]);
-  useEffect(()=>LS.set("p_done",done),[done]);
+  // Load from Gist on mount
+  useEffect(()=>{
+    (async()=>{
+      setSyncStatus("loading");
+      const d=await gistLoad();
+      if(d){
+        if(d.cells)setCells(d.cells);
+        if(d.orgs)setOrgs(d.orgs);
+        if(d.ptasks)setPtasks(d.ptasks);
+        if(d.notes)setNotes(d.notes);
+        if(d.events)setEvents(d.events);
+        if(d.meeting)setMeeting(d.meeting);
+        if(d.protocols)setProtocols(d.protocols);
+        if(d.libNotes)setLibNotes(d.libNotes);
+        if(d.done)setDone(d.done);
+        if(d.codingProjects)setCodingProjects(d.codingProjects);
+      } else {
+        // fallback to localStorage
+        setCells(LS.get("p_cells",[]));setOrgs(LS.get("p_orgs",[]));setPtasks(LS.get("p_ptasks",{}));
+        setNotes(LS.get("p_notes",{}));setEvents(LS.get("p_events",[]));setMeeting(LS.get("p_meet",{myTurn:false}));
+        setProtocols(LS.get("p_prot",[]));setLibNotes(LS.get("p_lib",[]));setDone(LS.get("p_done",{}));
+        setCodingProjects(LS.get("p_coding",[]));
+      }
+      setSyncStatus("synced");
+      setLoaded(true);
+    })();
+  },[]);
+
+  // Debounced save to Gist + localStorage
+  const saveTimer=useRef(null);
+  const allData=useRef({});
+  allData.current={cells,orgs,ptasks,notes,events,meeting,protocols,libNotes,done,codingProjects};
+
+  const triggerSave=useCallback(()=>{
+    if(!loaded)return;
+    setSyncStatus("saving");
+    clearTimeout(saveTimer.current);
+    saveTimer.current=setTimeout(async()=>{
+      const d=allData.current;
+      LS.set("p_cells",d.cells);LS.set("p_orgs",d.orgs);LS.set("p_ptasks",d.ptasks);
+      LS.set("p_notes",d.notes);LS.set("p_events",d.events);LS.set("p_meet",d.meeting);
+      LS.set("p_prot",d.protocols);LS.set("p_lib",d.libNotes);LS.set("p_done",d.done);
+      LS.set("p_coding",d.codingProjects);
+      try{await gistSave(d);setSyncStatus("synced");}catch{setSyncStatus("error");}
+    },1500);
+  },[loaded]);
+
+  useEffect(()=>{if(loaded)triggerSave();},[cells,orgs,ptasks,notes,events,meeting,protocols,libNotes,done,codingProjects]);
 
   const setNote=(k,v)=>setNotes(n=>({...n,[k]:v}));
   const navDay=n=>setDate(addDays(date,n));
@@ -315,46 +367,30 @@ function App(){
 
   const getLabTasks=d=>{
     const out=[];
-    cells.forEach(c=>{const day=diffD(c.passageDate,d),media=getCellMedia(day);if(day>=4)out.push({cat:"cell",name:c.name,day,label:`Passage! P${c.passage} D${day}`,detail:`${c.name} needs passaging (D${day})`,urgent:true});else if(media)out.push({cat:"cell",name:c.name,day,label:`Media: ${media}`,detail:`${c.name} P${c.passage} D${day} → ${media}`,urgent:false});});
+    cells.forEach(c=>{const day=diffD(c.passageDate,d),media=getCellMedia(day,c.mediaType||"E8F");if(day>=4)out.push({cat:"cell",name:c.name,day,label:`Passage! P${c.passage} D${day}`,detail:`${c.name} needs passaging (D${day})`,urgent:true});else if(media)out.push({cat:"cell",name:c.name,day,label:`Media: ${media}`,detail:`${c.name} P${c.passage} D${day} → ${media}`,urgent:false});});
     orgs.forEach(o=>{const day=diffD(o.seedDate,d)-3,task=(o.type==="normal"?getNormal:getVasc)(day);if(task)out.push({cat:"org",name:o.name,day,label:task,detail:`${o.name} D${day} → ${task}`,urgent:false});});
     return out;
   };
-  const labToday=getLabTasks(date);
-  const labTomorrow=getLabTasks(addDays(date,1));
+  const labToday=getLabTasks(date),labTomorrow=getLabTasks(addDays(date,1));
   const personal=[...(ptasks[date]||[])].sort((a,b)=>a.time.localeCompare(b.time));
   const activeEvents=events.filter(e=>!e.archived).map(e=>({...e,daysLeft:diffD(todayStr(),e.deadline)})).sort((a,b)=>a.daysLeft-b.daysLeft);
   const archivedEvents=events.filter(e=>e.archived);
   const reminders=activeEvents.filter(e=>e.daysLeft>=0&&e.daysLeft<=e.reminderDays);
 
-  const openAddCell=()=>{setNc({name:"",passage:"",passageDate:date});setEditCellIdx(null);setModal("cell");};
-  const openEditCell=(c,i)=>{setNc({name:c.name,passage:String(c.passage),passageDate:c.passageDate});setEditCellIdx(i);setModal("cell");};
-  const saveCell=()=>{
-    if(!nc.name||!nc.passageDate)return;
-    const obj={...nc,id:editCellIdx===null?Date.now():cells[editCellIdx].id};
-    if(editCellIdx===null)setCells(prev=>[...prev,obj]);
-    else setCells(prev=>prev.map((x,j)=>j===editCellIdx?obj:x));
-    setModal(null);
-  };
-
+  const openAddCell=()=>{setNc({name:"",passage:"",passageDate:date,mediaType:"E8F"});setEditCellIdx(null);setModal("cell");};
+  const openEditCell=(c,i)=>{setNc({name:c.name,passage:String(c.passage),passageDate:c.passageDate,mediaType:c.mediaType||"E8F"});setEditCellIdx(i);setModal("cell");};
+  const saveCell=()=>{if(!nc.name||!nc.passageDate)return;const obj={...nc,id:editCellIdx===null?Date.now():cells[editCellIdx].id};if(editCellIdx===null)setCells(p=>[...p,obj]);else setCells(p=>p.map((x,j)=>j===editCellIdx?obj:x));setModal(null);};
   const openAddOrg=()=>{setNo({name:"",type:"normal",format:"gel",seedDate:date});setEditOrgIdx(null);setModal("org");};
   const openEditOrg=(o,i)=>{setNo({name:o.name,type:o.type,format:o.format,seedDate:o.seedDate});setEditOrgIdx(i);setModal("org");};
-  const saveOrg=()=>{
-    if(!no.name||!no.seedDate)return;
-    const obj={...no,id:editOrgIdx===null?Date.now():orgs[editOrgIdx].id};
-    if(editOrgIdx===null)setOrgs(prev=>[...prev,obj]);
-    else setOrgs(prev=>prev.map((x,j)=>j===editOrgIdx?obj:x));
-    setModal(null);
-  };
+  const saveOrg=()=>{if(!no.name||!no.seedDate)return;const obj={...no,id:editOrgIdx===null?Date.now():orgs[editOrgIdx].id};if(editOrgIdx===null)setOrgs(p=>[...p,obj]);else setOrgs(p=>p.map((x,j)=>j===editOrgIdx?obj:x));setModal(null);};
 
-  const exportICS=()=>{
-    const evts=[];
-    labToday.forEach((t,i)=>{const hr=String(9+i).padStart(2,"0"),ds=date.replace(/-/g,"");evts.push(`BEGIN:VEVENT\nSUMMARY:[Lab] ${t.name} – ${t.label}\nDTSTART:${ds}T${hr}0000\nDTEND:${ds}T${hr}3000\nEND:VEVENT`);});
-    personal.forEach(t=>{const[hh,mm]=t.time.split(":"),sm=parseInt(hh)*60+parseInt(mm),em=sm+(t.duration||60),ds=date.replace(/-/g,""),eH=String(Math.floor(em/60)).padStart(2,"0"),eM=String(em%60).padStart(2,"0"),tp=TTYPES.find(x=>x.id===t.type);evts.push(`BEGIN:VEVENT\nSUMMARY:${tp?.label||""} ${t.title}\nDTSTART:${ds}T${hh}${mm}00\nDTEND:${ds}T${eH}${eM}00\nEND:VEVENT`);});
-    if(!evts.length)return alert("No tasks to export.");
-    const a=document.createElement("a");a.href="data:text/calendar;charset=utf-8,"+encodeURIComponent(`BEGIN:VCALENDAR\nVERSION:2.0\n${evts.join("\n")}\nEND:VCALENDAR`);a.download=`phd-${date}.ics`;a.click();
-  };
+  const exportICS=()=>{const evts=[];labToday.forEach((t,i)=>{const hr=String(9+i).padStart(2,"0"),ds=date.replace(/-/g,"");evts.push(`BEGIN:VEVENT\nSUMMARY:[Lab] ${t.name} – ${t.label}\nDTSTART:${ds}T${hr}0000\nDTEND:${ds}T${hr}3000\nEND:VEVENT`);});personal.forEach(t=>{const[hh,mm]=t.time.split(":"),sm=parseInt(hh)*60+parseInt(mm),em=sm+(t.duration||60),ds=date.replace(/-/g,""),eH=String(Math.floor(em/60)).padStart(2,"0"),eM=String(em%60).padStart(2,"0"),tp=TTYPES.find(x=>x.id===t.type);evts.push(`BEGIN:VEVENT\nSUMMARY:${tp?.label||""} ${t.title}\nDTSTART:${ds}T${hh}${mm}00\nDTEND:${ds}T${eH}${eM}00\nEND:VEVENT`);});if(!evts.length)return alert("No tasks to export.");const a=document.createElement("a");a.href="data:text/calendar;charset=utf-8,"+encodeURIComponent(`BEGIN:VCALENDAR\nVERSION:2.0\n${evts.join("\n")}\nEND:VCALENDAR`);a.download=`phd-${date}.ics`;a.click();};
+
+  const syncColor={loading:"#f59e0b",saving:"#f59e0b",synced:"#10b981",error:"#ef4444"}[syncStatus];
+  const syncText={loading:"Loading...",saving:"Saving...",synced:"Synced ✓",error:"Sync error"}[syncStatus];
 
   let lastSec="";
+  if(!loaded)return<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",fontFamily:"sans-serif",color:"#64748b",fontSize:16}}>⏳ Loading your data...</div>;
 
   return(
     <div id="app">
@@ -365,18 +401,13 @@ function App(){
           <div className="s hl">Lab · Life · Research</div>
           {col&&<div style={{fontSize:20,textAlign:"center",marginTop:4}}>🎓</div>}
         </div>
-        {NAV.map(n=>{
-          const show=n.sec&&n.sec!==lastSec;if(n.sec)lastSec=n.sec;
-          return(
-            <React.Fragment key={n.id}>
-              {show&&<div className="sbs hl">{n.sec}</div>}
-              <div className={`sbi${tab===n.id?" act":""}`} onClick={()=>setTab(n.id)}>
-                <span className="ic">{n.icon}</span><span className="lb hl">{n.label}</span>
-              </div>
-            </React.Fragment>
-          );
-        })}
+        {NAV.map(n=>{const show=n.sec&&n.sec!==lastSec;if(n.sec)lastSec=n.sec;return(
+          <React.Fragment key={n.id}>
+            {show&&<div className="sbs hl">{n.sec}</div>}
+            <div className={`sbi${tab===n.id?" act":""}`} onClick={()=>setTab(n.id)}><span className="ic">{n.icon}</span><span className="lb hl">{n.label}</span></div>
+          </React.Fragment>);})}
         <div style={{flex:1}}/><div className="sdv"/>
+        <div className="hl" style={{padding:"4px 12px 6px",display:"flex",alignItems:"center",fontSize:11}}><span className="sync-dot" style={{background:syncColor}}/><span style={{color:"rgba(255,255,255,.4)"}}>{syncText}</span></div>
         <button className="stg" onClick={()=>setCol(!col)}>{col?"▶":"◀"}</button>
       </div>
 
@@ -393,9 +424,7 @@ function App(){
             </div>
             <button onClick={exportICS} style={{marginLeft:"auto",background:"#1e3a5f",color:"white",border:"none",borderRadius:7,padding:"5px 12px",cursor:"pointer",fontWeight:700,fontSize:12}}>📅 .ics</button>
           </>}
-          {reminders.length>0&&<div style={{width:"100%",marginTop:4,background:"#fef3c7",border:"1px solid #fcd34d",borderRadius:8,padding:"5px 10px"}}>
-            {reminders.map(e=><span key={e.id} style={{fontSize:12,color:"#92400e",marginRight:12}}>⚠️ <strong>{e.title}</strong> — {e.daysLeft===0?"DUE TODAY!":`${e.daysLeft}d left`}</span>)}
-          </div>}
+          {reminders.length>0&&<div style={{width:"100%",marginTop:4,background:"#fef3c7",border:"1px solid #fcd34d",borderRadius:8,padding:"5px 10px"}}>{reminders.map(e=><span key={e.id} style={{fontSize:12,color:"#92400e",marginRight:12}}>⚠️ <strong>{e.title}</strong> — {e.daysLeft===0?"DUE TODAY!":`${e.daysLeft}d left`}</span>)}</div>}
         </div>
 
         <div id="body">
@@ -403,47 +432,17 @@ function App(){
           {/* DAILY */}
           {tab==="planner"&&(<>
             {dow===1&&<div className="card" style={{background:"#eff6ff",border:"1px solid #bfdbfe"}}><b style={{color:"#1d4ed8"}}>🧪 Monday — Individual Lab Meeting</b><div style={{display:"flex",gap:8,marginTop:6}}><span className="tag" style={{background:"#6366f1"}}>AI</span><span className="tag" style={{background:"#0891b2"}}>Cardioid</span></div></div>}
-            {dow===5&&<div className="card" style={{background:meeting.myTurn?"#fff7ed":"#f0fdf4",border:`1px solid ${meeting.myTurn?"#fed7aa":"#bbf7d0"}`}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div><b style={{color:meeting.myTurn?"#c2410c":"#15803d"}}>🎤 Friday — Group Presentation</b><div style={{fontSize:13,color:meeting.myTurn?"#ea580c":"#16a34a",marginTop:2}}>{meeting.myTurn?"🔴 YOUR turn to present!":"✅ Not your turn"}</div></div>
-                <button className="btn" style={{background:meeting.myTurn?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurn:!meeting.myTurn})}>{meeting.myTurn?"✓ Done":"My Turn"}</button>
-              </div>
-            </div>}
+            {dow===5&&<div className="card" style={{background:meeting.myTurn?"#fff7ed":"#f0fdf4",border:`1px solid ${meeting.myTurn?"#fed7aa":"#bbf7d0"}`}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><b style={{color:meeting.myTurn?"#c2410c":"#15803d"}}>🎤 Friday — Group Presentation</b><div style={{fontSize:13,color:meeting.myTurn?"#ea580c":"#16a34a",marginTop:2}}>{meeting.myTurn?"🔴 YOUR turn!":"✅ Not your turn"}</div></div><button className="btn" style={{background:meeting.myTurn?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurn:!meeting.myTurn})}>{meeting.myTurn?"✓ Done":"My Turn"}</button></div></div>}
             <div className="card">
               <div style={{fontWeight:700,fontSize:14,marginBottom:10}}>🔬 Lab Tasks</div>
-              {labToday.length===0?<div style={{color:"#94a3b8",textAlign:"center",padding:"12px 0",fontSize:13}}>No lab tasks today 🎉</div>
-                :labToday.map((t,i)=>{const k=`lab_${date}_${i}`,isDone=!!done[k];return(
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",marginBottom:6,borderRadius:9,background:isDone?"#f0fdf4":t.urgent?"#fff1f2":"#f8faff",border:`1px solid ${isDone?"#bbf7d0":t.urgent?"#fecaca":"#e0e7ff"}`,opacity:isDone?.7:1}}>
-                    <button onClick={()=>toggleDone(k)} style={{background:"none",border:`2px solid ${isDone?"#16a34a":"#cbd5e1"}`,borderRadius:"50%",width:22,height:22,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:isDone?"#16a34a":"transparent",fontSize:12,fontWeight:700}}>✓</button>
-                    <span className="tag" style={{background:t.cat==="cell"?"#8b5cf6":"#0891b2",fontSize:10}}>{t.cat==="cell"?"Cell":"Organoid"}</span>
-                    <div style={{flex:1,textDecoration:isDone?"line-through":"none"}}><div style={{fontWeight:600,fontSize:13,color:isDone?"#94a3b8":t.urgent?"#dc2626":"#1e293b"}}>{t.name}</div><div style={{fontSize:11,color:"#64748b"}}>{t.detail}</div></div>
-                    {!isDone&&t.urgent&&<span>⚠️</span>}
-                  </div>);})}
+              {labToday.length===0?<div style={{color:"#94a3b8",textAlign:"center",padding:"12px 0",fontSize:13}}>No lab tasks today 🎉</div>:labToday.map((t,i)=>{const k=`lab_${date}_${i}`,isDone=!!done[k];return(<div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",marginBottom:6,borderRadius:9,background:isDone?"#f0fdf4":t.urgent?"#fff1f2":"#f8faff",border:`1px solid ${isDone?"#bbf7d0":t.urgent?"#fecaca":"#e0e7ff"}`,opacity:isDone?.7:1}}><button onClick={()=>toggleDone(k)} style={{background:"none",border:`2px solid ${isDone?"#16a34a":"#cbd5e1"}`,borderRadius:"50%",width:22,height:22,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:isDone?"#16a34a":"transparent",fontSize:12,fontWeight:700}}>✓</button><span className="tag" style={{background:t.cat==="cell"?"#8b5cf6":"#0891b2",fontSize:10}}>{t.cat==="cell"?"Cell":"Organoid"}</span><div style={{flex:1,textDecoration:isDone?"line-through":"none"}}><div style={{fontWeight:600,fontSize:13,color:isDone?"#94a3b8":t.urgent?"#dc2626":"#1e293b"}}>{t.name}</div><div style={{fontSize:11,color:"#64748b"}}>{t.detail}</div></div>{!isDone&&t.urgent&&<span>⚠️</span>}</div>);})}
             </div>
             <div className="card">
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                <div style={{fontWeight:700,fontSize:14}}>📅 Schedule</div>
-                <button className="btn" style={{background:"#6366f1",fontSize:12,padding:"5px 10px"}} onClick={()=>{setNt({type:"coding",title:"",time:"09:00",duration:60,detail:""});setModal("task");}}>+ Add</button>
-              </div>
-              {personal.length===0?<div style={{color:"#94a3b8",textAlign:"center",padding:"12px 0",fontSize:13}}>No schedule — click "+ Add"</div>
-                :personal.map((t,i)=>{const tp=TTYPES.find(x=>x.id===t.type),k=`sch_${date}_${i}`,isDone=!!done[k];return(
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",marginBottom:6,borderRadius:9,background:isDone?"#f0fdf4":"#fafafa",border:`1px solid ${isDone?"#bbf7d0":"#e5e7eb"}`,opacity:isDone?.7:1}}>
-                    <button onClick={()=>toggleDone(k)} style={{background:"none",border:`2px solid ${isDone?"#16a34a":"#cbd5e1"}`,borderRadius:"50%",width:22,height:22,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:isDone?"#16a34a":"transparent",fontSize:12,fontWeight:700}}>✓</button>
-                    <div style={{textAlign:"center",minWidth:40}}><div style={{fontSize:12,fontWeight:700}}>{t.time}</div><div style={{fontSize:10,color:"#9ca3af"}}>{t.duration}m</div></div>
-                    <span className="tag" style={{background:tp?.color||"#6b7280",fontSize:10}}>{tp?.label||t.type}</span>
-                    <div style={{flex:1,textDecoration:isDone?"line-through":"none"}}><div style={{fontWeight:600,fontSize:13}}>{t.title}</div>{t.detail&&<div style={{fontSize:11,color:"#64748b"}}>{t.detail}</div>}</div>
-                    <button onClick={()=>setPtasks({...ptasks,[date]:(ptasks[date]||[]).filter((_,j)=>j!==i)})} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer",fontSize:16}}>✕</button>
-                  </div>);})}
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><div style={{fontWeight:700,fontSize:14}}>📅 Schedule</div><button className="btn" style={{background:"#6366f1",fontSize:12,padding:"5px 10px"}} onClick={()=>{setNt({type:"coding",title:"",time:"09:00",duration:60,detail:""});setModal("task");}}>+ Add</button></div>
+              {personal.length===0?<div style={{color:"#94a3b8",textAlign:"center",padding:"12px 0",fontSize:13}}>No schedule — click "+ Add"</div>:personal.map((t,i)=>{const tp=TTYPES.find(x=>x.id===t.type),k=`sch_${date}_${i}`,isDone=!!done[k];return(<div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",marginBottom:6,borderRadius:9,background:isDone?"#f0fdf4":"#fafafa",border:`1px solid ${isDone?"#bbf7d0":"#e5e7eb"}`,opacity:isDone?.7:1}}><button onClick={()=>toggleDone(k)} style={{background:"none",border:`2px solid ${isDone?"#16a34a":"#cbd5e1"}`,borderRadius:"50%",width:22,height:22,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:isDone?"#16a34a":"transparent",fontSize:12,fontWeight:700}}>✓</button><div style={{textAlign:"center",minWidth:40}}><div style={{fontSize:12,fontWeight:700}}>{t.time}</div><div style={{fontSize:10,color:"#9ca3af"}}>{t.duration}m</div></div><span className="tag" style={{background:tp?.color||"#6b7280",fontSize:10}}>{tp?.label||t.type}</span><div style={{flex:1,textDecoration:isDone?"line-through":"none"}}><div style={{fontWeight:600,fontSize:13}}>{t.title}</div>{t.detail&&<div style={{fontSize:11,color:"#64748b"}}>{t.detail}</div>}</div><button onClick={()=>setPtasks({...ptasks,[date]:(ptasks[date]||[]).filter((_,j)=>j!==i)})} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer",fontSize:16}}>✕</button></div>);})}
             </div>
-            <div className="card" style={{background:"#f8faff",border:"1px solid #e0e7ff"}}>
-              <div style={{fontWeight:700,fontSize:13,color:"#4338ca",marginBottom:6}}>📅 Tomorrow — {addDays(date,1)}</div>
-              {labTomorrow.length===0?<div style={{color:"#a5b4fc",fontSize:12}}>No lab tasks</div>:labTomorrow.map((t,i)=><div key={i} style={{fontSize:12,color:"#3730a3",marginBottom:3}}>🔬 <strong>{t.name}</strong>: {t.label}</div>)}
-            </div>
-            <div className="card" style={{border:"1px solid #fde68a",background:"#fffbeb"}}>
-              <div style={{fontWeight:700,fontSize:14,marginBottom:3,color:"#92400e"}}>🌙 Daily Reflection</div>
-              <div style={{fontSize:12,color:"#b45309",marginBottom:8}}>What went well? What was hard? What will you do differently?</div>
-              <RTE value={notes[`ref_${date}`]||""} onChange={v=>setNote(`ref_${date}`,v)} placeholder="Today I accomplished... I struggled with... Tomorrow I will..." minH={120}/>
-            </div>
+            <div className="card" style={{background:"#f8faff",border:"1px solid #e0e7ff"}}><div style={{fontWeight:700,fontSize:13,color:"#4338ca",marginBottom:6}}>📅 Tomorrow — {addDays(date,1)}</div>{labTomorrow.length===0?<div style={{color:"#a5b4fc",fontSize:12}}>No lab tasks</div>:labTomorrow.map((t,i)=><div key={i} style={{fontSize:12,color:"#3730a3",marginBottom:3}}>🔬 <strong>{t.name}</strong>: {t.label}</div>)}</div>
+            <div className="card" style={{border:"1px solid #fde68a",background:"#fffbeb"}}><div style={{fontWeight:700,fontSize:14,marginBottom:3,color:"#92400e"}}>🌙 Daily Reflection</div><div style={{fontSize:12,color:"#b45309",marginBottom:8}}>What went well? What was hard? What will you do differently?</div><RTE value={notes[`ref_${date}`]||""} onChange={v=>setNote(`ref_${date}`,v)} placeholder="Today I accomplished... I struggled with... Tomorrow I will..." minH={120}/></div>
           </>)}
 
           {/* MEETINGS */}
@@ -453,88 +452,109 @@ function App(){
 
           {/* EVENTS */}
           {tab==="events"&&(<>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <strong style={{fontSize:14}}>🎯 Deadlines & Events</strong>
-              <button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNe({cat:"poster",title:"",deadline:"",reminderDays:7,detail:""});setModal("event");}}>+ Add</button>
-            </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><strong style={{fontSize:14}}>🎯 Deadlines & Events</strong><button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNe({cat:"poster",title:"",deadline:"",reminderDays:7,detail:""});setModal("event");}}>+ Add</button></div>
             {activeEvents.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No upcoming events</div>}
-            {activeEvents.map(e=>{const cat=ECATS.find(x=>x.id===e.cat),urgent=e.daysLeft<=e.reminderDays&&e.daysLeft>=0,overdue=e.daysLeft<0;return(
-              <div key={e.id} className="card" style={{borderLeft:`4px solid ${overdue?"#ef4444":urgent?"#f59e0b":cat?.color||"#94a3b8"}`}}>
-                <div style={{display:"flex",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
-                  <div style={{flex:1}}>
-                    <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:4}}><span className="tag" style={{background:cat?.color||"#94a3b8"}}>{cat?.label||e.cat}</span>{overdue&&<span className="tag" style={{background:"#ef4444"}}>OVERDUE</span>}{!overdue&&urgent&&<span className="tag" style={{background:"#f59e0b"}}>⚠️ Soon</span>}</div>
-                    <div style={{fontWeight:700,fontSize:14,marginBottom:2}}>{e.title}</div>
-                    {e.detail&&<div style={{fontSize:12,color:"#64748b",marginBottom:3}}>{e.detail}</div>}
-                    <div style={{fontSize:12}}><span style={{color:"#64748b"}}>Deadline: </span><strong style={{color:overdue?"#ef4444":urgent?"#f59e0b":"#334155"}}>{e.deadline}</strong><span style={{marginLeft:6,color:overdue?"#ef4444":urgent?"#f59e0b":"#94a3b8"}}>{overdue?`(${Math.abs(e.daysLeft)}d overdue)`:e.daysLeft===0?"🔴 TODAY!":`(${e.daysLeft}d left)`}</span></div>
-                    {!overdue&&<div style={{marginTop:6,height:3,background:"#f1f5f9",borderRadius:3,overflow:"hidden"}}><div style={{height:"100%",borderRadius:3,width:`${Math.min(100,Math.max(0,((e.reminderDays-e.daysLeft)/e.reminderDays)*100))}%`,background:e.daysLeft<=3?"#ef4444":e.daysLeft<=7?"#f59e0b":"#10b981"}}/></div>}
-                  </div>
-                  <div style={{display:"flex",gap:5,flexDirection:"column"}}>
-                    <button className="btn" style={{background:"#10b981",fontSize:12,padding:"4px 10px"}} onClick={()=>setEvents(events.map(x=>x.id===e.id?{...x,archived:true}:x))}>✓</button>
-                    <button className="btn" style={{background:"#ef4444",fontSize:12,padding:"4px 10px"}} onClick={()=>setEvents(events.filter(x=>x.id!==e.id))}>✕</button>
-                  </div>
-                </div>
-              </div>);})}
-            {archivedEvents.length>0&&<details style={{marginTop:6}}><summary style={{cursor:"pointer",color:"#94a3b8",fontSize:13,fontWeight:600,padding:"6px 0"}}>✅ Archived ({archivedEvents.length})</summary>
-              {archivedEvents.map(e=>{const cat=ECATS.find(x=>x.id===e.cat);return<div key={e.id} className="card" style={{opacity:.6,marginTop:6}}><div style={{display:"flex",justifyContent:"space-between"}}><div><span className="tag" style={{background:cat?.color||"#94a3b8"}}>{cat?.label||e.cat}</span><span style={{marginLeft:8,fontWeight:600,fontSize:13}}>{e.title}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{e.deadline}</span></div><button onClick={()=>setEvents(events.filter(x=>x.id!==e.id))} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer"}}>✕</button></div></div>;})}
-            </details>}
+            {activeEvents.map(e=>{const cat=ECATS.find(x=>x.id===e.cat),urgent=e.daysLeft<=e.reminderDays&&e.daysLeft>=0,overdue=e.daysLeft<0;return(<div key={e.id} className="card" style={{borderLeft:`4px solid ${overdue?"#ef4444":urgent?"#f59e0b":cat?.color||"#94a3b8"}`}}><div style={{display:"flex",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}><div style={{flex:1}}><div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:4}}><span className="tag" style={{background:cat?.color||"#94a3b8"}}>{cat?.label||e.cat}</span>{overdue&&<span className="tag" style={{background:"#ef4444"}}>OVERDUE</span>}{!overdue&&urgent&&<span className="tag" style={{background:"#f59e0b"}}>⚠️ Soon</span>}</div><div style={{fontWeight:700,fontSize:14,marginBottom:2}}>{e.title}</div>{e.detail&&<div style={{fontSize:12,color:"#64748b",marginBottom:3}}>{e.detail}</div>}<div style={{fontSize:12}}><span style={{color:"#64748b"}}>Deadline: </span><strong style={{color:overdue?"#ef4444":urgent?"#f59e0b":"#334155"}}>{e.deadline}</strong><span style={{marginLeft:6,color:overdue?"#ef4444":urgent?"#f59e0b":"#94a3b8"}}>{overdue?`(${Math.abs(e.daysLeft)}d overdue)`:e.daysLeft===0?"🔴 TODAY!":`(${e.daysLeft}d left)`}</span></div>{!overdue&&<div style={{marginTop:6,height:3,background:"#f1f5f9",borderRadius:3,overflow:"hidden"}}><div style={{height:"100%",borderRadius:3,width:`${Math.min(100,Math.max(0,((e.reminderDays-e.daysLeft)/e.reminderDays)*100))}%`,background:e.daysLeft<=3?"#ef4444":e.daysLeft<=7?"#f59e0b":"#10b981"}}/></div>}</div><div style={{display:"flex",gap:5,flexDirection:"column"}}><button className="btn" style={{background:"#10b981",fontSize:12,padding:"4px 10px"}} onClick={()=>setEvents(events.map(x=>x.id===e.id?{...x,archived:true}:x))}>✓</button><button className="btn" style={{background:"#ef4444",fontSize:12,padding:"4px 10px"}} onClick={()=>setEvents(events.filter(x=>x.id!==e.id))}>✕</button></div></div></div>);})}
+            {archivedEvents.length>0&&<details style={{marginTop:6}}><summary style={{cursor:"pointer",color:"#94a3b8",fontSize:13,fontWeight:600,padding:"6px 0"}}>✅ Archived ({archivedEvents.length})</summary>{archivedEvents.map(e=>{const cat=ECATS.find(x=>x.id===e.cat);return<div key={e.id} className="card" style={{opacity:.6,marginTop:6}}><div style={{display:"flex",justifyContent:"space-between"}}><div><span className="tag" style={{background:cat?.color||"#94a3b8"}}>{cat?.label||e.cat}</span><span style={{marginLeft:8,fontWeight:600,fontSize:13}}>{e.title}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{e.deadline}</span></div><button onClick={()=>setEvents(events.filter(x=>x.id!==e.id))} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer"}}>✕</button></div></div>;})}</details>}
           </>)}
 
           {/* CELLS */}
           {tab==="cells"&&(<>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <strong style={{fontSize:14}}>🧫 Cell Line Tracker</strong>
-              <button className="btn" style={{background:"#8b5cf6",fontSize:12,padding:"5px 11px"}} onClick={openAddCell}>+ Add</button>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><strong style={{fontSize:14}}>🧫 Cell Line Tracker</strong><button className="btn" style={{background:"#8b5cf6",fontSize:12,padding:"5px 11px"}} onClick={openAddCell}>+ Add</button></div>
+            <div className="card" style={{background:"#fafafa",padding:"9px 13px",marginBottom:10,fontSize:12,color:"#64748b"}}>
+              <strong style={{color:"#334155"}}>Protocol:</strong> D0: Ri+E8 → D1+: E8 (daily) or E8F (every 2 days) → D4+: Passage required
             </div>
-            <div className="card" style={{background:"#fafafa",padding:"9px 13px",marginBottom:10,fontSize:12,color:"#64748b"}}><strong style={{color:"#334155"}}>Protocol:</strong> D0: Ri+E8 → D1: E8 → D2–D3: E8F → D4+: Passage required</div>
             {cells.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No cell lines added</div>}
-            {cells.map((c,i)=>{
-              const day=diffD(c.passageDate,date),media=getCellMedia(day),warn=day>=4;
-              return(
-                <div key={c.id||i} className="card" style={{borderLeft:`4px solid ${warn?"#ef4444":media?"#10b981":"#e2e8f0"}`}}>
-                  <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8,alignItems:"flex-start"}}>
-                    <div><span style={{fontWeight:700,fontSize:14}}>{c.name}</span><span className="tag" style={{background:"#8b5cf6",marginLeft:7}}>P{c.passage}</span><div style={{color:"#64748b",fontSize:12,marginTop:2}}>Passaged: {c.passageDate} | Today: <strong>D{day}</strong></div></div>
-                    <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                      <button className="btn" style={{background:"#3b82f6",fontSize:12,padding:"5px 10px"}} onClick={()=>setCells(cells.map((x,j)=>j===i?{...x,passage:Number(x.passage)+1,passageDate:date}:x))}>Passage → P{Number(c.passage)+1}</button>
-                      <button className="btn" style={{background:"#f59e0b",fontSize:12,padding:"5px 10px"}} onClick={()=>openEditCell(c,i)}>✏️</button>
-                      <button className="btn" style={{background:"#ef4444",fontSize:12,padding:"5px 10px"}} onClick={()=>setCells(cells.filter((_,j)=>j!==i))}>✕</button>
-                    </div>
+            {cells.map((c,i)=>{const day=diffD(c.passageDate,date),media=getCellMedia(day,c.mediaType||"E8F"),warn=day>=4;return(
+              <div key={c.id||i} className="card" style={{borderLeft:`4px solid ${warn?"#ef4444":media?"#10b981":"#e2e8f0"}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8,alignItems:"flex-start"}}>
+                  <div>
+                    <span style={{fontWeight:700,fontSize:14}}>{c.name}</span>
+                    <span className="tag" style={{background:"#8b5cf6",marginLeft:7}}>P{c.passage}</span>
+                    <span className="tag" style={{background:c.mediaType==="E8"?"#3b82f6":"#0891b2",marginLeft:5,fontSize:10}}>{c.mediaType||"E8F"}</span>
+                    <div style={{color:"#64748b",fontSize:12,marginTop:2}}>Passaged: {c.passageDate} | Today: <strong>D{day}</strong></div>
                   </div>
-                  <div style={{marginTop:8,padding:"7px 11px",borderRadius:8,background:warn?"#fff1f2":media?"#f0fdf4":"#f8fafc",border:`1px solid ${warn?"#fecaca":media?"#bbf7d0":"#e2e8f0"}`}}>
-                    {warn?<span style={{color:"#dc2626",fontWeight:700,fontSize:13}}>⚠️ Passage required! (D{day})</span>:media?<span style={{color:"#16a34a",fontWeight:700,fontSize:13}}>💊 Today: {media}</span>:<span style={{color:"#94a3b8",fontSize:13}}>No action today</span>}
+                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                    <button className="btn" style={{background:"#3b82f6",fontSize:12,padding:"5px 10px"}} onClick={()=>setCells(cells.map((x,j)=>j===i?{...x,passage:Number(x.passage)+1,passageDate:date}:x))}>Passage → P{Number(c.passage)+1}</button>
+                    <button className="btn" style={{background:"#f59e0b",fontSize:12,padding:"5px 10px"}} onClick={()=>openEditCell(c,i)}>✏️</button>
+                    <button className="btn" style={{background:"#ef4444",fontSize:12,padding:"5px 10px"}} onClick={()=>setCells(cells.filter((_,j)=>j!==i))}>✕</button>
                   </div>
                 </div>
-              );})}
+                <div style={{marginTop:8,padding:"7px 11px",borderRadius:8,background:warn?"#fff1f2":media?"#f0fdf4":"#f8fafc",border:`1px solid ${warn?"#fecaca":media?"#bbf7d0":"#e2e8f0"}`}}>
+                  {warn?<span style={{color:"#dc2626",fontWeight:700,fontSize:13}}>⚠️ Passage required! (D{day})</span>:media?<span style={{color:"#16a34a",fontWeight:700,fontSize:13}}>💊 Today: {media}</span>:<span style={{color:"#94a3b8",fontSize:13}}>No action today {day>0&&day<4?"(E8F — no change needed)":""}</span>}
+                </div>
+              </div>);})}
           </>)}
 
           {/* ORGANOIDS */}
           {tab==="orgs"&&(<>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <strong style={{fontSize:14}}>🫀 Organoid Tracker</strong>
-              <button className="btn" style={{background:"#0891b2",fontSize:12,padding:"5px 11px"}} onClick={openAddOrg}>+ Add Batch</button>
-            </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><strong style={{fontSize:14}}>🫀 Organoid Tracker</strong><button className="btn" style={{background:"#0891b2",fontSize:12,padding:"5px 11px"}} onClick={openAddOrg}>+ Add Batch</button></div>
             {orgs.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No batches added</div>}
-            {orgs.map((o,i)=>{
-              const day=diffD(o.seedDate,date)-3,getTask=o.type==="normal"?getNormal:getVasc,todayTask=getTask(day),tc=o.type==="normal"?"#0891b2":"#9333ea";
-              const d0=parseD(o.seedDate);d0.setDate(d0.getDate()+3);
-              const upcoming=[];for(let d=day+1;d<=21&&upcoming.length<4;d++){const t=getTask(d);if(t)upcoming.push({day:d,task:t,date:addDays(o.seedDate,d+3)});}
+            {orgs.map((o,i)=>{const day=diffD(o.seedDate,date)-3,getTask=o.type==="normal"?getNormal:getVasc,todayTask=getTask(day),tc=o.type==="normal"?"#0891b2":"#9333ea";const d0=parseD(o.seedDate);d0.setDate(d0.getDate()+3);const upcoming=[];for(let d=day+1;d<=21&&upcoming.length<4;d++){const t=getTask(d);if(t)upcoming.push({day:d,task:t,date:addDays(o.seedDate,d+3)});}return(
+              <div key={o.id||i} className="card" style={{borderLeft:`4px solid ${tc}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8,alignItems:"flex-start"}}>
+                  <div><div style={{display:"flex",gap:5,alignItems:"center",flexWrap:"wrap"}}><span style={{fontWeight:700,fontSize:14}}>{o.name}</span><span className="tag" style={{background:tc,fontSize:10}}>{o.type==="normal"?"Normal":"Vasc"}</span><span className="tag" style={{background:"#f59e0b",fontSize:10}}>{o.format.toUpperCase()}</span>{day>21&&<span className="tag" style={{background:"#10b981",fontSize:10}}>✅ Done</span>}</div><div style={{color:"#64748b",fontSize:12,marginTop:2}}>Seeding: {o.seedDate} | D0: {fmt(d0)} | Today: <strong>D{day}</strong></div></div>
+                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                    <button className="btn" style={{background:"#f59e0b",fontSize:12,padding:"5px 10px"}} onClick={()=>openEditOrg(o,i)}>✏️</button>
+                    <button className="btn" style={{background:"#ef4444",fontSize:12,padding:"5px 10px"}} onClick={()=>setOrgs(orgs.filter((_,j)=>j!==i))}>✕</button>
+                  </div>
+                </div>
+                <div style={{marginTop:8,padding:"7px 11px",borderRadius:8,background:todayTask?"#eff6ff":day>21?"#f0fdf4":"#f8fafc",border:`1px solid ${todayTask?"#bfdbfe":day>21?"#bbf7d0":"#e2e8f0"}`}}>
+                  {todayTask?<span style={{color:"#1d4ed8",fontWeight:700,fontSize:13}}>📋 Today: {todayTask}</span>:day>21?<span style={{color:"#16a34a",fontWeight:700,fontSize:13}}>✅ Complete</span>:day<-3?<span style={{color:"#94a3b8",fontSize:13}}>⏳ Starts in {-3-day}d</span>:<span style={{color:"#94a3b8",fontSize:13}}>No action (D{day})</span>}
+                </div>
+                {upcoming.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:7}}>{upcoming.map(u=><div key={u.day} className="pill"><span style={{color:"#94a3b8"}}>{u.date} </span><strong style={{color:tc}}>D{u.day}</strong>: {u.task}</div>)}</div>}
+              </div>);})}
+          </>)}
+
+          {/* CODING TASKS */}
+          {tab==="coding_tasks"&&(<>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <strong style={{fontSize:14}}>💻 Coding Tasks</strong>
+              <button className="btn" style={{background:"#6366f1",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNcp({title:"",color:"#6366f1"});setModal("coding_proj");}}>+ New Project</button>
+            </div>
+            {codingProjects.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}><div style={{fontSize:28,marginBottom:6}}>💻</div>Create a project to start tracking coding tasks</div>}
+            {codingProjects.map((proj,pi)=>{
+              const isOpen=expCoding===proj.id;
+              const total=proj.tasks?.length||0,doneCount=(proj.tasks||[]).filter(t=>t.status==="done").length;
               return(
-                <div key={o.id||i} className="card" style={{borderLeft:`4px solid ${tc}`}}>
-                  <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8,alignItems:"flex-start"}}>
-                    <div>
-                      <div style={{display:"flex",gap:5,alignItems:"center",flexWrap:"wrap"}}><span style={{fontWeight:700,fontSize:14}}>{o.name}</span><span className="tag" style={{background:tc,fontSize:10}}>{o.type==="normal"?"Normal":"Vasc"}</span><span className="tag" style={{background:"#f59e0b",fontSize:10}}>{o.format.toUpperCase()}</span>{day>21&&<span className="tag" style={{background:"#10b981",fontSize:10}}>✅ Done</span>}</div>
-                      <div style={{color:"#64748b",fontSize:12,marginTop:2}}>Seeding: {o.seedDate} | D0: {fmt(d0)} | Today: <strong>D{day}</strong></div>
+                <div key={proj.id} className="card" style={{padding:0,overflow:"hidden",borderLeft:`4px solid ${proj.color||"#6366f1"}`}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"11px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setExpCoding(isOpen?null:proj.id)}>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{fontWeight:700,fontSize:14}}>{proj.title}</span>
+                      {total>0&&<span style={{fontSize:11,color:"#94a3b8"}}>{doneCount}/{total} done</span>}
+                      {total>0&&<div style={{width:60,height:5,background:"#e2e8f0",borderRadius:3,overflow:"hidden"}}><div style={{height:"100%",borderRadius:3,width:`${(doneCount/total)*100}%`,background:proj.color||"#6366f1"}}/></div>}
                     </div>
                     <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                      <button className="btn" style={{background:"#f59e0b",fontSize:12,padding:"5px 10px"}} onClick={()=>openEditOrg(o,i)}>✏️</button>
-                      <button className="btn" style={{background:"#ef4444",fontSize:12,padding:"5px 10px"}} onClick={()=>setOrgs(orgs.filter((_,j)=>j!==i))}>✕</button>
+                      <button className="btn" style={{background:"#6366f1",fontSize:11,padding:"3px 9px"}} onClick={e=>{e.stopPropagation();setNct({title:"",status:"todo",detail:"",deadline:""});setEditTaskCtx({projIdx:pi,taskIdx:null});setModal("coding_task");}}>+ Task</button>
+                      <button className="btn" style={{background:"#ef4444",fontSize:12,padding:"3px 9px"}} onClick={e=>{e.stopPropagation();setCodingProjects(codingProjects.filter((_,j)=>j!==pi));}}>✕</button>
+                      <span style={{color:"#94a3b8",fontSize:15}}>{isOpen?"▲":"▼"}</span>
                     </div>
                   </div>
-                  <div style={{marginTop:8,padding:"7px 11px",borderRadius:8,background:todayTask?"#eff6ff":day>21?"#f0fdf4":"#f8fafc",border:`1px solid ${todayTask?"#bfdbfe":day>21?"#bbf7d0":"#e2e8f0"}`}}>
-                    {todayTask?<span style={{color:"#1d4ed8",fontWeight:700,fontSize:13}}>📋 Today: {todayTask}</span>:day>21?<span style={{color:"#16a34a",fontWeight:700,fontSize:13}}>✅ Complete</span>:day<-3?<span style={{color:"#94a3b8",fontSize:13}}>⏳ Starts in {-3-day}d</span>:<span style={{color:"#94a3b8",fontSize:13}}>No action (D{day})</span>}
-                  </div>
-                  {upcoming.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:7}}>{upcoming.map(u=><div key={u.day} className="pill"><span style={{color:"#94a3b8"}}>{u.date} </span><strong style={{color:tc}}>D{u.day}</strong>: {u.task}</div>)}</div>}
+                  {isOpen&&<div style={{padding:12}}>
+                    {(!proj.tasks||proj.tasks.length===0)&&<div style={{color:"#94a3b8",fontSize:13,textAlign:"center",padding:"14px 0"}}>No tasks yet — click "+ Task"</div>}
+                    {(proj.tasks||[]).map((task,ti)=>{
+                      const st=TASK_STATUS.find(s=>s.id===task.status)||TASK_STATUS[0];
+                      return(
+                        <div key={task.id||ti} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"8px 10px",marginBottom:6,borderRadius:9,background:task.status==="done"?"#f0fdf4":"#fafafa",border:"1px solid #e5e7eb",opacity:task.status==="done"?.7:1}}>
+                          <select value={task.status} onChange={e=>{const updated=proj.tasks.map((t,j)=>j===ti?{...t,status:e.target.value}:t);setCodingProjects(codingProjects.map((p,j)=>j===pi?{...p,tasks:updated}:p));}} style={{border:`1px solid ${st.color}`,borderRadius:6,padding:"2px 5px",fontSize:11,color:st.color,fontWeight:700,background:"white",cursor:"pointer",outline:"none",flexShrink:0}}>
+                            {TASK_STATUS.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}
+                          </select>
+                          <div style={{flex:1}}>
+                            <div style={{fontWeight:600,fontSize:13,textDecoration:task.status==="done"?"line-through":"none",color:task.status==="done"?"#94a3b8":"#1e293b"}}>{task.title}</div>
+                            {task.detail&&<div style={{fontSize:11,color:"#64748b",marginTop:2}}>{task.detail}</div>}
+                            {task.deadline&&<div style={{fontSize:11,color:"#f59e0b",marginTop:2}}>📅 {task.deadline}</div>}
+                          </div>
+                          <div style={{display:"flex",gap:4}}>
+                            <button style={{background:"none",border:"none",cursor:"pointer",color:"#94a3b8",fontSize:13,padding:"2px 4px"}} onClick={()=>{setNct({title:task.title,status:task.status,detail:task.detail||"",deadline:task.deadline||""});setEditTaskCtx({projIdx:pi,taskIdx:ti});setModal("coding_task");}}>✏️</button>
+                            <button style={{background:"none",border:"none",cursor:"pointer",color:"#fca5a5",fontSize:13,padding:"2px 4px"}} onClick={()=>{const updated=proj.tasks.filter((_,j)=>j!==ti);setCodingProjects(codingProjects.map((p,j)=>j===pi?{...p,tasks:updated}:p));}}>✕</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>}
                 </div>
-              );})}
+              );
+            })}
           </>)}
 
           {/* NOTES */}
@@ -542,63 +562,26 @@ function App(){
             <div className="card">
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:6}}>
                 <strong style={{fontSize:14}}>📝 Notes — {date}</strong>
-                <button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"4px 11px"}} onClick={()=>{
-                  const ents=Object.entries(notes).filter(([k,v])=>v&&k.match(/^\d{4}-\d{2}-\d{2}$/)).sort(([a],[b])=>b.localeCompare(a));
-                  if(!ents.length)return alert("No notes to export.");
-                  const txt=ents.map(([d,v])=>`=== ${d} ===\n${v.replace(/<[^>]+>/g,"")}\n`).join("\n");
-                  const a=document.createElement("a");a.href="data:text/plain;charset=utf-8,"+encodeURIComponent(txt);a.download="phd-logs.txt";a.click();
-                }}>⬇ Export All</button>
+                <button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"4px 11px"}} onClick={()=>{const ents=Object.entries(notes).filter(([k,v])=>v&&k.match(/^\d{4}-\d{2}-\d{2}$/)).sort(([a],[b])=>b.localeCompare(a));if(!ents.length)return alert("No notes.");const txt=ents.map(([d,v])=>`=== ${d} ===\n${v.replace(/<[^>]+>/g,"")}\n`).join("\n");const a=document.createElement("a");a.href="data:text/plain;charset=utf-8,"+encodeURIComponent(txt);a.download="phd-logs.txt";a.click();}}>⬇ Export All</button>
               </div>
               <RTE value={notes[date]||""} onChange={v=>setNote(date,v)} placeholder="Daily notes, observations, thoughts..." minH={300}/>
               <div style={{fontSize:11,color:"#94a3b8",marginTop:5}}>Auto-saved ✓</div>
             </div>
-            {(()=>{
-              const past=Object.entries(notes).filter(([k,v])=>v&&k.match(/^\d{4}-\d{2}-\d{2}$/)&&k!==date).sort(([a],[b])=>b.localeCompare(a));
-              if(!past.length)return null;
-              return<div className="card"><div style={{fontWeight:700,fontSize:13,marginBottom:10,color:"#374151"}}>🗂 Past Entries ({past.length})</div>
-                {past.map(([d,v])=>{const preview=v.replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,100);return(
-                  <div key={d} style={{borderRadius:8,border:"1px solid #e2e8f0",marginBottom:7,overflow:"hidden"}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",background:"#f8fafc",cursor:"pointer"}} onClick={()=>setDate(d)}>
-                      <div><span style={{fontWeight:700,fontSize:13,color:"#1e3a5f"}}>{d}</span><span style={{marginLeft:6,fontSize:11,color:"#94a3b8"}}>{parseD(d).toLocaleDateString("en",{weekday:"short"})}</span><div style={{fontSize:12,color:"#64748b",marginTop:1}}>{preview}{preview.length===100?"…":""}</div></div>
-                      <span style={{color:"#6366f1",fontSize:12,fontWeight:600,flexShrink:0,marginLeft:8}}>Open →</span>
-                    </div>
-                  </div>);})}
-              </div>;
-            })()}
+            {(()=>{const past=Object.entries(notes).filter(([k,v])=>v&&k.match(/^\d{4}-\d{2}-\d{2}$/)&&k!==date).sort(([a],[b])=>b.localeCompare(a));if(!past.length)return null;return<div className="card"><div style={{fontWeight:700,fontSize:13,marginBottom:10,color:"#374151"}}>🗂 Past Entries ({past.length})</div>{past.map(([d,v])=>{const preview=v.replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,100);return(<div key={d} style={{borderRadius:8,border:"1px solid #e2e8f0",marginBottom:7,overflow:"hidden"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",background:"#f8fafc",cursor:"pointer"}} onClick={()=>setDate(d)}><div><span style={{fontWeight:700,fontSize:13,color:"#1e3a5f"}}>{d}</span><span style={{marginLeft:6,fontSize:11,color:"#94a3b8"}}>{parseD(d).toLocaleDateString("en",{weekday:"short"})}</span><div style={{fontSize:12,color:"#64748b",marginTop:1}}>{preview}{preview.length===100?"…":""}</div></div><span style={{color:"#6366f1",fontSize:12,fontWeight:600,flexShrink:0,marginLeft:8}}>Open →</span></div></div>);})}  </div>;})()}
           </>)}
 
           {/* PROTOCOLS */}
           {tab==="protocols"&&(<>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <strong style={{fontSize:14}}>📂 Protocols</strong>
-              <button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNp({title:"",category:""});setModal("prot");}}>+ Add</button>
-            </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><strong style={{fontSize:14}}>📂 Protocols</strong><button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNp({title:"",category:""});setModal("prot");}}>+ Add</button></div>
             {protocols.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}><div style={{fontSize:28,marginBottom:6}}>📂</div>Add your lab protocols</div>}
-            {protocols.map((p,i)=>{const isOpen=expProt===p.id;return(
-              <div key={p.id} className="card" style={{padding:0,overflow:"hidden"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 13px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setExpProt(isOpen?null:p.id)}>
-                  <div style={{display:"flex",alignItems:"center",gap:7}}><span style={{fontWeight:700,fontSize:14}}>{p.title}</span>{p.category&&<span className="tag" style={{background:"#475569"}}>{p.category}</span>}</div>
-                  <div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",fontSize:12,padding:"3px 9px"}} onClick={e=>{e.stopPropagation();setProtocols(protocols.filter((_,j)=>j!==i));}}>✕</button><span style={{color:"#94a3b8",fontSize:16}}>{isOpen?"▲":"▼"}</span></div>
-                </div>
-                {isOpen&&<div style={{padding:13}}><RTE value={p.content||""} onChange={v=>setProtocols(protocols.map((x,j)=>j===i?{...x,content:v}:x))} placeholder="Write protocol steps..." minH={180}/></div>}
-              </div>);})}
+            {protocols.map((p,i)=>{const isOpen=expProt===p.id;return(<div key={p.id} className="card" style={{padding:0,overflow:"hidden"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 13px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setExpProt(isOpen?null:p.id)}><div style={{display:"flex",alignItems:"center",gap:7}}><span style={{fontWeight:700,fontSize:14}}>{p.title}</span>{p.category&&<span className="tag" style={{background:"#475569"}}>{p.category}</span>}</div><div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",fontSize:12,padding:"3px 9px"}} onClick={e=>{e.stopPropagation();setProtocols(protocols.filter((_,j)=>j!==i));}}>✕</button><span style={{color:"#94a3b8",fontSize:16}}>{isOpen?"▲":"▼"}</span></div></div>{isOpen&&<div style={{padding:13}}><RTE value={p.content||""} onChange={v=>setProtocols(protocols.map((x,j)=>j===i?{...x,content:v}:x))} placeholder="Write protocol steps..." minH={180}/></div>}</div>);})}
           </>)}
 
           {/* LIBRARY */}
           {tab==="library"&&(<>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <strong style={{fontSize:14}}>📚 Notes Library</strong>
-              <button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNl({title:"",tag:""});setModal("lib");}}>+ Add Note</button>
-            </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><strong style={{fontSize:14}}>📚 Notes Library</strong><button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNl({title:"",tag:""});setModal("lib");}}>+ Add Note</button></div>
             {libNotes.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}><div style={{fontSize:28,marginBottom:6}}>📚</div>Save paper summaries, lecture notes, ideas…</div>}
-            {libNotes.map((n,i)=>{const isOpen=expLib===n.id;return(
-              <div key={n.id} className="card" style={{padding:0,overflow:"hidden"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 13px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setExpLib(isOpen?null:n.id)}>
-                  <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap"}}><span style={{fontWeight:700,fontSize:14}}>{n.title}</span>{n.tag&&<span className="tag" style={{background:"#8b5cf6"}}>{n.tag}</span>}<span style={{fontSize:11,color:"#94a3b8"}}>{n.date}</span></div>
-                  <div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",fontSize:12,padding:"3px 9px"}} onClick={e=>{e.stopPropagation();setLibNotes(libNotes.filter((_,j)=>j!==i));}}>✕</button><span style={{color:"#94a3b8",fontSize:16}}>{isOpen?"▲":"▼"}</span></div>
-                </div>
-                {isOpen&&<div style={{padding:13}}><RTE value={n.content||""} onChange={v=>setLibNotes(libNotes.map((x,j)=>j===i?{...x,content:v}:x))} placeholder="Notes, summaries, references..." minH={180}/></div>}
-              </div>);})}
+            {libNotes.map((n,i)=>{const isOpen=expLib===n.id;return(<div key={n.id} className="card" style={{padding:0,overflow:"hidden"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 13px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setExpLib(isOpen?null:n.id)}><div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap"}}><span style={{fontWeight:700,fontSize:14}}>{n.title}</span>{n.tag&&<span className="tag" style={{background:"#8b5cf6"}}>{n.tag}</span>}<span style={{fontSize:11,color:"#94a3b8"}}>{n.date}</span></div><div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",fontSize:12,padding:"3px 9px"}} onClick={e=>{e.stopPropagation();setLibNotes(libNotes.filter((_,j)=>j!==i));}}>✕</button><span style={{color:"#94a3b8",fontSize:16}}>{isOpen?"▲":"▼"}</span></div></div>{isOpen&&<div style={{padding:13}}><RTE value={n.content||""} onChange={v=>setLibNotes(libNotes.map((x,j)=>j===i?{...x,content:v}:x))} placeholder="Notes, summaries, references..." minH={180}/></div>}</div>);})}
           </>)}
 
         </div>
@@ -626,6 +609,10 @@ function App(){
         <div className="lbl">Cell line name</div><input className="inp" value={nc.name} onChange={e=>setNc({...nc,name:e.target.value})} placeholder="e.g. iPSC-Line1"/>
         <div className="lbl">Current passage (P)</div><input className="inp" value={nc.passage} onChange={e=>setNc({...nc,passage:e.target.value})} placeholder="e.g. 10"/>
         <div className="lbl">Last passage date (D0)</div><input className="inp" type="date" value={nc.passageDate} onChange={e=>setNc({...nc,passageDate:e.target.value})}/>
+        <div className="lbl">Media type after D0</div>
+        <div style={{display:"flex",gap:10,marginBottom:12}}>
+          {["E8","E8F"].map(m=><button key={m} onClick={()=>setNc({...nc,mediaType:m})} style={{flex:1,padding:"8px",borderRadius:8,border:`2px solid ${nc.mediaType===m?"#6366f1":"#e2e8f0"}`,background:nc.mediaType===m?"#eff6ff":"white",color:nc.mediaType===m?"#4338ca":"#475569",fontWeight:nc.mediaType===m?700:400,cursor:"pointer",fontSize:13}}>{m}{m==="E8"?" (daily)":" (every 2 days)"}</button>)}
+        </div>
         <button className="btn" style={{background:editCellIdx===null?"#8b5cf6":"#f59e0b",width:"100%",padding:10}} onClick={saveCell}>{editCellIdx===null?"Add Cell Line":"Save Changes"}</button>
       </Modal>}
 
@@ -648,6 +635,33 @@ function App(){
         <div className="lbl">Title</div><input className="inp" value={nl.title} onChange={e=>setNl({...nl,title:e.target.value})} placeholder="e.g. Paper summary: Nature 2024"/>
         <div className="lbl">Tag (optional)</div><input className="inp" value={nl.tag} onChange={e=>setNl({...nl,tag:e.target.value})} placeholder="e.g. Paper / Lecture / Idea"/>
         <button className="btn" style={{background:"#8b5cf6",width:"100%",padding:10}} onClick={()=>{if(!nl.title)return;setLibNotes([...libNotes,{...nl,id:Date.now(),date:todayStr(),content:""}]);setModal(null);}}>Add</button>
+      </Modal>}
+
+      {modal==="coding_proj"&&<Modal title="➕ New Coding Project" onClose={()=>setModal(null)}>
+        <div className="lbl">Project name</div><input className="inp" value={ncp.title} onChange={e=>setNcp({...ncp,title:e.target.value})} placeholder="e.g. AI Cardioid Model / scRNA Pipeline"/>
+        <div className="lbl">Color</div>
+        <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+          {["#6366f1","#0891b2","#10b981","#f59e0b","#ef4444","#9333ea","#ec4899","#334155"].map(c=><button key={c} onClick={()=>setNcp({...ncp,color:c})} style={{width:28,height:28,borderRadius:"50%",background:c,border:ncp.color===c?"3px solid #1e293b":"2px solid transparent",cursor:"pointer"}}/>)}
+        </div>
+        <button className="btn" style={{background:ncp.color,width:"100%",padding:10}} onClick={()=>{if(!ncp.title)return;setCodingProjects([...codingProjects,{...ncp,id:Date.now(),tasks:[]}]);setModal(null);}}>Create Project</button>
+      </Modal>}
+
+      {modal==="coding_task"&&editTaskCtx&&<Modal title={editTaskCtx.taskIdx===null?"➕ Add Task":"✏️ Edit Task"} onClose={()=>setModal(null)}>
+        <div className="lbl">Task title</div><input className="inp" value={nct.title} onChange={e=>setNct({...nct,title:e.target.value})} placeholder="e.g. Implement UMAP clustering"/>
+        <div className="lbl">Status</div>
+        <div style={{display:"flex",gap:8,marginBottom:12}}>
+          {TASK_STATUS.map(s=><button key={s.id} onClick={()=>setNct({...nct,status:s.id})} style={{flex:1,padding:"7px",borderRadius:8,border:`2px solid ${nct.status===s.id?s.color:"#e2e8f0"}`,background:nct.status===s.id?"#f8fafc":"white",color:nct.status===s.id?s.color:"#94a3b8",fontWeight:nct.status===s.id?700:400,cursor:"pointer",fontSize:12}}>{s.label}</button>)}
+        </div>
+        <div className="lbl">Deadline (optional)</div><input className="inp" type="date" value={nct.deadline} onChange={e=>setNct({...nct,deadline:e.target.value})}/>
+        <div className="lbl">Notes (optional)</div><input className="inp" value={nct.detail} onChange={e=>setNct({...nct,detail:e.target.value})} placeholder="Details, links, notes..."/>
+        <button className="btn" style={{background:"#6366f1",width:"100%",padding:10}} onClick={()=>{
+          if(!nct.title)return;
+          const {projIdx,taskIdx}=editTaskCtx;
+          const task={...nct,id:taskIdx===null?Date.now():codingProjects[projIdx].tasks[taskIdx].id};
+          const updated=taskIdx===null?[...(codingProjects[projIdx].tasks||[]),task]:codingProjects[projIdx].tasks.map((t,j)=>j===taskIdx?task:t);
+          setCodingProjects(codingProjects.map((p,j)=>j===projIdx?{...p,tasks:updated}:p));
+          setModal(null);
+        }}>{editTaskCtx.taskIdx===null?"Add Task":"Save Changes"}</button>
       </Modal>}
 
     </div>

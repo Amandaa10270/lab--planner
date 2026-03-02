@@ -13,91 +13,77 @@ html,body,#root{height:100%;overflow:hidden;}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;}
 input,select,textarea,button{font-family:inherit;}
 ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
-
-/* Layout */
 #app{display:flex;height:100vh;overflow:hidden;}
-#sidebar{width:230px;min-width:230px;background:linear-gradient(180deg,#1e3a5f 0%,#1e2d4a 100%);display:flex;flex-direction:column;overflow-y:auto;transition:width .2s;}
-#sidebar.collapsed{width:56px;min-width:56px;}
+#sidebar{width:220px;min-width:220px;background:linear-gradient(180deg,#1e3a5f,#1e2d4a);display:flex;flex-direction:column;overflow-y:auto;transition:width .2s;}
+#sidebar.col{width:52px;min-width:52px;}
+#sidebar.col .hidelabel{display:none;}
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-#topbar{flex-shrink:0;background:white;border-bottom:1px solid #e2e8f0;padding:10px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-#content{flex:1;overflow-y:auto;padding:16px 20px 32px;}
-
-/* Sidebar styles */
-.sb-logo{padding:18px 16px 12px;color:white;}
-.sb-logo .title{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;}
-.sb-logo .sub{font-size:11px;opacity:.5;margin-top:2px;white-space:nowrap;overflow:hidden;}
-.sb-section{padding:6px 10px 2px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;overflow:hidden;}
-.sb-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;color:rgba(255,255,255,0.65);border-radius:8px;margin:1px 6px;transition:all .15s;white-space:nowrap;overflow:hidden;}
-.sb-item:hover{background:rgba(255,255,255,0.08);color:white;}
-.sb-item.active{background:rgba(99,102,241,0.35);color:white;}
-.sb-item .icon{font-size:16px;flex-shrink:0;width:22px;text-align:center;}
-.sb-item .label{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;}
-.sb-divider{height:1px;background:rgba(255,255,255,0.08);margin:6px 14px;}
-.sb-toggle{margin:auto 8px 12px;padding:8px;background:rgba(255,255,255,0.07);border:none;border-radius:8px;color:rgba(255,255,255,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
-.sb-toggle:hover{background:rgba(255,255,255,0.12);color:white;}
-#sidebar.collapsed .sb-logo .title,
-#sidebar.collapsed .sb-logo .sub,
-#sidebar.collapsed .sb-section,
-#sidebar.collapsed .sb-item .label,
-#sidebar.collapsed .sb-divider{display:none;}
-#sidebar.collapsed .sb-item{justify-content:center;padding:9px;}
-
-/* Cards */
-.card{background:white;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;}
-
-/* Rich Text Editor */
+#topbar{flex-shrink:0;background:white;border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+#content{flex:1;overflow-y:auto;padding:14px 18px 32px;}
+.sb-logo{padding:16px 14px 10px;color:white;}
+.sb-logo .t{font-weight:800;font-size:14px;}
+.sb-logo .s{font-size:11px;opacity:.5;margin-top:2px;}
+.sb-sec{padding:6px 10px 2px;font-size:10px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.07em;}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 12px;cursor:pointer;color:rgba(255,255,255,.6);border-radius:8px;margin:1px 5px;transition:all .15s;white-space:nowrap;}
+.sb-item:hover{background:rgba(255,255,255,.08);color:white;}
+.sb-item.act{background:rgba(99,102,241,.35);color:white;}
+.sb-item .ico{font-size:15px;flex-shrink:0;width:20px;text-align:center;}
+.sb-item .lbl{font-size:13px;font-weight:500;}
+.sb-div{height:1px;background:rgba(255,255,255,.08);margin:5px 12px;}
+.sb-tog{margin:auto 8px 10px;padding:7px;background:rgba(255,255,255,.07);border:none;border-radius:8px;color:rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.sb-tog:hover{background:rgba(255,255,255,.12);color:white;}
+.card{background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:10px;}
+.btn{border:none;border-radius:8px;padding:7px 13px;cursor:pointer;font-weight:600;font-size:13px;color:white;}
+.inp{display:block;width:100%;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:14px;margin-bottom:10px;outline:none;}
+.lbl{display:block;margin-bottom:4px;font-weight:600;font-size:12px;color:#64748b;}
+.tag{border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700;display:inline-block;color:white;}
+.pill{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;font-size:11px;color:#475569;}
+/* RTE */
 .rte-wrap{border:1px solid #e2e8f0;border-radius:9px;overflow:hidden;}
 .rte-bar{display:flex;flex-wrap:wrap;gap:2px;padding:5px 7px;background:#f8fafc;border-bottom:1px solid #e2e8f0;}
-.rte-bar button{background:none;border:none;border-radius:5px;padding:4px 6px;cursor:pointer;font-size:12px;color:#475569;line-height:1;font-family:inherit;}
+.rte-bar button{background:none;border:none;border-radius:5px;padding:3px 6px;cursor:pointer;font-size:12px;color:#475569;line-height:1;font-family:inherit;}
 .rte-bar button:hover{background:#e2e8f0;}
 .rte-bar .sep{width:1px;background:#e2e8f0;margin:2px 3px;align-self:stretch;}
-.rte-body{min-height:120px;padding:10px 12px;outline:none;font-size:14px;line-height:1.75;background:white;overflow-x:hidden;overflow-y:auto;word-break:break-word;}
-.rte-body:focus{outline:none;}
+.rte-body{min-height:100px;padding:10px 12px;outline:none;font-size:14px;line-height:1.75;background:white;overflow-x:hidden;overflow-y:auto;word-break:break-word;}
 .rte-body ul{padding-left:20px;}.rte-body ol{padding-left:20px;}
-.rte-body .cl-item{display:flex;align-items:flex-start;gap:6px;margin:2px 0;}
-.rte-body .cl-cb{display:inline-block;width:17px;height:17px;border:2px solid #94a3b8;border-radius:4px;flex-shrink:0;cursor:pointer;margin-top:3px;text-align:center;font-size:12px;line-height:13px;user-select:none;color:white;background:white;}
-.rte-body .cl-cb.checked{background:#6366f1;border-color:#6366f1;}
-.rte-body .cl-cb.checked::after{content:'✓';}
-.rte-body .cl-text{flex:1;outline:none;min-width:4px;}
-.rte-body .cl-item.done .cl-text{text-decoration:line-through;color:#94a3b8;}
 .rte-body:empty:before{content:attr(data-ph);color:#94a3b8;pointer-events:none;display:block;}
-
-/* Misc */
-.btn{border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:600;font-size:13px;color:white;}
-.inp{display:block;width:100%;padding:8px 11px;border-radius:8px;border:1px solid #e2e8f0;font-size:14px;margin-bottom:10px;outline:none;}
-.lbl{display:block;margin-bottom:4px;font-weight:600;font-size:12px;color:#64748b;}
-.tag{border-radius:5px;padding:2px 9px;font-size:11px;font-weight:700;display:inline-block;color:white;}
-.pill{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:3px 9px;font-size:11px;color:#475569;}
-
-@media(max-width:600px){#sidebar{width:52px;min-width:52px;}#sidebar .sb-logo .title,#sidebar .sb-logo .sub,#sidebar .sb-section,#sidebar .sb-item .label,#sidebar .sb-divider{display:none;}#sidebar .sb-item{justify-content:center;padding:9px;}#content{padding:12px 12px 28px;}}
+.cl-row{display:flex;align-items:baseline;gap:6px;margin:2px 0;padding:1px 0;}
+.cl-box{display:inline-block;width:16px;height:16px;border:2px solid #94a3b8;border-radius:4px;flex-shrink:0;cursor:pointer;user-select:none;vertical-align:middle;text-align:center;font-size:11px;line-height:12px;color:white;background:white;position:relative;top:-1px;}
+.cl-box.chk{background:#6366f1;border-color:#6366f1;}
+.cl-box.chk::after{content:'✓';}
+.cl-txt{flex:1;outline:none;min-width:4px;display:inline;}
+.cl-row.done .cl-txt{text-decoration:line-through;color:#94a3b8;}
+@media(max-width:600px){#sidebar{width:50px;min-width:50px;}#sidebar .hidelabel{display:none;}#content{padding:10px 10px 28px;}}
 </style>
 </head>
 <body><div id="root"></div>
 <script type="text/babel">
-const {useState,useEffect,useRef,useCallback}=React;
+const {useState,useEffect,useRef}=React;
+
+/* ── helpers ── */
 const fmt=d=>d.toISOString().split("T")[0];
-const parse=s=>new Date(s+"T12:00:00");
-const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return fmt(d);};
-const diff=(a,b)=>Math.round((parse(b)-parse(a))/86400000);
-const today=()=>fmt(new Date());
+const parseD=s=>new Date(s+"T12:00:00");
+const addDays=(s,n)=>{const d=parseD(s);d.setDate(d.getDate()+n);return fmt(d);};
+const diffD=(a,b)=>Math.round((parseD(b)-parseD(a))/86400000);
+const todayStr=()=>fmt(new Date());
+const getMon=s=>{const d=parseD(s),day=d.getDay(),delta=day===0?-6:1-day;d.setDate(d.getDate()+delta);return fmt(d);};
 const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}};
 
-// Protocols
+/* ── protocols ── */
 const getCellMedia=d=>({0:"Ri + E8",1:"E8",2:"E8F",3:"E8F"}[d]??null);
-const getNormalTask=d=>{const m={"-3":"Seeding","-2":"E8F","-1":"E8F","0":"CHIR","1":"-I","2":"IWP4","4":"-I"};if(m[d]!==undefined)return m[d];if(d>=6&&d<=21&&(d-6)%2===0)return"+C (media change)";return null;};
-const getVascTask=d=>{const m={"-3":"Seeding","-2":"E8F","-1":"E8F","0":"CHIR","1":"-I + BWP4 + FGF2","2":"IWP4 + BWP4 + FGF2","4":"-I + BWP4 + FGF2","5":"FGF2 + VEGF + +C"};if(m[d]!==undefined)return m[d];if(d>=7&&d<=21&&(d-7)%2===0)return"+C + FGF2 + VEGF + A8301 + SB431542";return null;};
+const getNormal=d=>{const m={"-3":"Seeding","-2":"E8F","-1":"E8F","0":"CHIR","1":"-I","2":"IWP4","4":"-I"};if(m[d]!==undefined)return m[d];if(d>=6&&d<=21&&(d-6)%2===0)return"+C (media change)";return null;};
+const getVasc=d=>{const m={"-3":"Seeding","-2":"E8F","-1":"E8F","0":"CHIR","1":"-I+BWP4+FGF2","2":"IWP4+BWP4+FGF2","4":"-I+BWP4+FGF2","5":"FGF2+VEGF++C"};if(m[d]!==undefined)return m[d];if(d>=7&&d<=21&&(d-7)%2===0)return"+C+FGF2+VEGF+A8301+SB431542";return null;};
+const TTYPES=[{id:"coding",label:"💻 Coding",color:"#6366f1"},{id:"ta",label:"📚 TA Work",color:"#f59e0b"},{id:"course",label:"🎓 Course",color:"#10b981"},{id:"meeting",label:"👥 Meeting",color:"#3b82f6"},{id:"other",label:"📌 Other",color:"#8b5cf6"}];
+const ECATS=[{id:"conference",label:"🏛 Conference",color:"#6366f1"},{id:"poster",label:"🖼 Poster",color:"#f59e0b"},{id:"paper",label:"📄 Paper",color:"#10b981"},{id:"admin",label:"📋 Admin",color:"#3b82f6"},{id:"other",label:"📌 Other",color:"#8b5cf6"}];
+const HLS=["#fef08a","#bbf7d0","#bfdbfe","#fecaca","#e9d5ff","#fed7aa"];
 
-const TASK_TYPES=[{id:"coding",label:"💻 Coding",color:"#6366f1"},{id:"ta",label:"📚 TA Work",color:"#f59e0b"},{id:"course",label:"🎓 Course",color:"#10b981"},{id:"meeting",label:"👥 Meeting",color:"#3b82f6"},{id:"other",label:"📌 Other",color:"#8b5cf6"}];
-const EVENT_CATS=[{id:"conference",label:"🏛 Conference",color:"#6366f1"},{id:"poster",label:"🖼 Poster",color:"#f59e0b"},{id:"paper",label:"📄 Paper",color:"#10b981"},{id:"admin",label:"📋 Admin",color:"#3b82f6"},{id:"other",label:"📌 Other",color:"#8b5cf6"}];
-const HIGHLIGHTS=["#fef08a","#bbf7d0","#bfdbfe","#fecaca","#e9d5ff","#fed7aa"];
-
-// ── Rich Text Editor ─────────────────────────────────────────────────
+/* ── RTE ── */
 function RTE({value,onChange,placeholder,minH=120}){
   const ref=useRef(null);
   const skip=useRef(false);
-  const cb=useRef(null); // stable onChange ref
-  cb.current=onChange;
-  const fire=()=>{skip.current=true;cb.current(ref.current.innerHTML);};
+  const onChangRef=useRef(onChange);
+  onChangRef.current=onChange;
+  const fire=()=>{skip.current=true;onChangRef.current(ref.current.innerHTML);};
 
   useEffect(()=>{
     if(!ref.current||skip.current)return;
@@ -105,109 +91,102 @@ function RTE({value,onChange,placeholder,minH=120}){
   },[value]);
   useEffect(()=>{skip.current=false;});
 
-  const exec=(cmd,val=null)=>{document.execCommand(cmd,false,val);ref.current?.focus();};
+  const exec=(cmd,v=null)=>{document.execCommand(cmd,false,v);ref.current?.focus();};
 
-  const makeClItem=()=>{
-    const wrap=document.createElement("div");wrap.className="cl-item";
-    const box=document.createElement("span");box.className="cl-cb";box.contentEditable="false";
-    const txt=document.createElement("span");txt.className="cl-text";txt.contentEditable="true";txt.innerHTML="<br>";
-    wrap.append(box,txt);
-    return wrap;
+  const makeRow=()=>{
+    const row=document.createElement("div");row.className="cl-row";
+    const box=document.createElement("span");box.className="cl-box";box.contentEditable="false";
+    const txt=document.createElement("span");txt.className="cl-txt";txt.contentEditable="true";txt.innerHTML="<br>";
+    row.append(box,txt);return row;
   };
 
-  // Delegated listeners — attached once
   useEffect(()=>{
     const el=ref.current;if(!el)return;
-    const onMousedown=e=>{
-      // toggle checkbox
-      if(e.target.classList.contains("cl-cb")){
+    const onMD=e=>{
+      if(e.target.classList.contains("cl-box")){
         e.preventDefault();
-        e.target.classList.toggle("checked");
-        e.target.closest(".cl-item")?.classList.toggle("done",e.target.classList.contains("checked"));
+        const row=e.target.closest(".cl-row");
+        e.target.classList.toggle("chk");
+        row?.classList.toggle("done",e.target.classList.contains("chk"));
         fire();
-        return;
       }
     };
-    const onKeydown=e=>{
-      // find if cursor is inside a cl-item
+    const onKD=e=>{
       const sel=window.getSelection();if(!sel||!sel.rangeCount)return;
-      let node=sel.getRangeAt(0).startContainer;
-      let item=null;
-      while(node&&node!==el){if(node.classList?.contains("cl-item")){item=node;break;}node=node.parentElement;}
-      if(!item)return;
-      const txt=item.querySelector(".cl-text");
+      let n=sel.getRangeAt(0).startContainer,row=null;
+      while(n&&n!==el){if(n.classList?.contains("cl-row")){row=n;break;}n=n.parentElement;}
+      if(!row)return;
+      const txt=row.querySelector(".cl-txt");
       const empty=!txt||txt.innerText.replace(/[\u00a0\n\r]/g,"").trim()==="";
       if(e.key==="Backspace"&&empty){
         e.preventDefault();
-        const prev=item.previousElementSibling;
-        item.remove();
+        const prev=row.previousElementSibling;row.remove();
         if(prev){const r=document.createRange(),s=window.getSelection();r.selectNodeContents(prev);r.collapse(false);s.removeAllRanges();s.addRange(r);}
         fire();
-      } else if(e.key==="Enter"){
+      }else if(e.key==="Enter"){
         e.preventDefault();
-        const next=makeClItem();item.after(next);
-        const t=next.querySelector(".cl-text");t.focus();
+        const next=makeRow();row.after(next);
+        const t=next.querySelector(".cl-txt");t.focus();
         const r=document.createRange(),s=window.getSelection();r.selectNodeContents(t);r.collapse(false);s.removeAllRanges();s.addRange(r);
         fire();
       }
     };
-    el.addEventListener("mousedown",onMousedown);
-    el.addEventListener("keydown",onKeydown);
-    return()=>{el.removeEventListener("mousedown",onMousedown);el.removeEventListener("keydown",onKeydown);};
+    el.addEventListener("mousedown",onMD);
+    el.addEventListener("keydown",onKD);
+    return()=>{el.removeEventListener("mousedown",onMD);el.removeEventListener("keydown",onKD);};
   },[]);
 
-  const addChecklist=()=>{
-    const item=makeClItem();
+  const addCL=()=>{
+    const row=makeRow();
     const sel=window.getSelection();
-    // find if inside existing cl-item
-    let cur=null,node=sel?.getRangeAt(0)?.startContainer;
-    while(node&&node!==ref.current){if(node.classList?.contains("cl-item")){cur=node;break;}node=node.parentElement;}
-    if(cur)cur.after(item);
-    else if(sel?.rangeCount){const r=sel.getRangeAt(0);r.collapse(false);r.insertNode(item);r.setStartAfter(item);sel.removeAllRanges();sel.addRange(r);}
-    else ref.current.appendChild(item);
-    const t=item.querySelector(".cl-text");t.focus();
+    let cur=null,n=sel?.getRangeAt(0)?.startContainer;
+    while(n&&n!==ref.current){if(n.classList?.contains("cl-row")){cur=n;break;}n=n.parentElement;}
+    if(cur)cur.after(row);
+    else if(sel?.rangeCount){const r=sel.getRangeAt(0);r.collapse(false);r.insertNode(row);r.setStartAfter(row);sel.removeAllRanges();sel.addRange(r);}
+    else ref.current.appendChild(row);
+    const t=row.querySelector(".cl-txt");t.focus();
     const r=document.createRange(),s=window.getSelection();r.selectNodeContents(t);r.collapse(false);s.removeAllRanges();s.addRange(r);
     fire();
   };
 
-  const T=({cmd,val,title,ch})=><button title={title} onMouseDown={e=>{e.preventDefault();exec(cmd,val);}}>{ch}</button>;
+  const T=({cmd,v,title,ch})=><button title={title} onMouseDown={e=>{e.preventDefault();exec(cmd,v??null);}}>{ch}</button>;
   return(
     <div className="rte-wrap">
       <div className="rte-bar">
-        <T cmd="bold"          title="Bold"          ch={<b>B</b>}/>
-        <T cmd="italic"        title="Italic"        ch={<i>I</i>}/>
-        <T cmd="underline"     title="Underline"     ch={<u>U</u>}/>
-        <T cmd="strikeThrough" title="Strikethrough" ch={<s>S</s>}/>
-        <T cmd="superscript"   title="Superscript"   ch="x²"/>
-        <T cmd="subscript"     title="Subscript"     ch="x₂"/>
+        <T cmd="bold" title="Bold" ch={<b>B</b>}/>
+        <T cmd="italic" title="Italic" ch={<i>I</i>}/>
+        <T cmd="underline" title="Underline" ch={<u>U</u>}/>
+        <T cmd="strikeThrough" title="Strike" ch={<s>S</s>}/>
+        <T cmd="superscript" title="Superscript" ch="x²"/>
+        <T cmd="subscript" title="Subscript" ch="x₂"/>
         <div className="sep"/>
-        {HIGHLIGHTS.map(c=><button key={c} title="Highlight" onMouseDown={e=>{e.preventDefault();exec("hiliteColor",c);}} style={{background:c,border:"1px solid #e2e8f0",borderRadius:4,width:17,height:17,padding:0,cursor:"pointer"}}/>)}
+        {HLS.map(c=><button key={c} onMouseDown={e=>{e.preventDefault();exec("hiliteColor",c);}} style={{background:c,border:"1px solid #e2e8f0",borderRadius:4,width:16,height:16,padding:0,cursor:"pointer"}}/>)}
         <div className="sep"/>
-        <T cmd="insertUnorderedList" title="Bullet list"   ch="• —"/>
-        <T cmd="insertOrderedList"   title="Numbered list" ch="1.—"/>
-        <button title="Checklist" onMouseDown={e=>{e.preventDefault();addChecklist();}}>☑</button>
+        <T cmd="insertUnorderedList" title="Bullet" ch="•—"/>
+        <T cmd="insertOrderedList" title="Numbered" ch="1—"/>
+        <button title="Checklist" onMouseDown={e=>{e.preventDefault();addCL();}}>☑</button>
         <div className="sep"/>
-        <T cmd="justifyLeft"   title="Left"   ch="⫷"/>
+        <T cmd="justifyLeft" title="Left" ch="⬅"/>
         <T cmd="justifyCenter" title="Center" ch="≡"/>
-        <T cmd="justifyRight"  title="Right"  ch="⫸"/>
-        <T cmd="indent"        title="Indent" ch="→"/>
-        <T cmd="outdent"       title="Outdent"ch="←"/>
+        <T cmd="justifyRight" title="Right" ch="➡"/>
+        <T cmd="indent" title="Indent" ch="→"/>
+        <T cmd="outdent" title="Outdent" ch="←"/>
         <div className="sep"/>
         <button title="Link" onMouseDown={e=>{e.preventDefault();const u=prompt("URL:","https://");if(u)exec("createLink",u);}}>🔗</button>
-        <T cmd="removeFormat"  title="Clear formatting" ch="✕"/>
+        <T cmd="removeFormat" title="Clear" ch="✕"/>
       </div>
-      <div ref={ref} className="rte-body" contentEditable suppressContentEditableWarning
-        onInput={fire} style={{minHeight:minH}} data-ph={placeholder}/>
+      <div ref={ref} className="rte-body" contentEditable suppressContentEditableWarning onInput={fire} style={{minHeight:minH}} data-ph={placeholder}/>
     </div>
   );
 }
 
+/* ── Modal ── */
 function Modal({title,onClose,children}){
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999}}>
-      <div style={{background:"white",borderRadius:16,padding:24,width:"min(460px,94vw)",maxHeight:"90vh",overflowY:"auto"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-          <strong style={{fontSize:16}}>{title}</strong>
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999}}>
+      <div style={{background:"white",borderRadius:14,padding:22,width:"min(440px,94vw)",maxHeight:"90vh",overflowY:"auto"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <strong style={{fontSize:15}}>{title}</strong>
           <button onClick={onClose} style={{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#94a3b8"}}>✕</button>
         </div>
         {children}
@@ -216,144 +195,288 @@ function Modal({title,onClose,children}){
   );
 }
 
-// Get Monday of the week for a given date
-const getMondayOfWeek=s=>{const d=parse(s),day=d.getDay(),delta=day===0?-6:1-day;d.setDate(d.getDate()+delta);return fmt(d);};
-const fmtWeek=s=>{const m=parse(s),e=new Date(m);e.setDate(e.getDate()+4);return `Week of ${m.toLocaleDateString("en",{month:"short",day:"numeric"})} – ${e.toLocaleDateString("en",{month:"short",day:"numeric",year:"numeric"})}`;};
+/* ── Meeting Tab ── */
+function MeetingTab({dirKey,color,icon,label,notes,setNotes,curDate}){
+  const [adding,setAdding]=useState(false);
+  const [newDate,setNewDate]=useState(getMon(curDate));
+  const [openId,setOpenId]=useState(null);
 
+  const setNote=(k,v)=>setNotes(n=>({...n,[k]:v}));
 
-const NAV=[
-  {id:"planner", icon:"📋", label:"Daily Plan",  section:"MAIN"},
-  {id:"ai_meet",  icon:"🤖", label:"AI Meeting",         section:"MEETINGS"},
-  {id:"card_meet",icon:"🫀", label:"Cardioid Meeting"},
-  {id:"fri_meet", icon:"🎤", label:"Friday Presentation"},
-  {id:"events",  icon:"🎯", label:"Deadlines"},
-  {id:"cells",   icon:"🧫", label:"Cell Culture"},
-  {id:"orgs",    icon:"🫀", label:"Organoids"},
-  {id:"notes",   icon:"📝", label:"Daily Notes", section:"NOTES"},
-  {id:"protocols",icon:"📂",label:"Protocols",   section:"LIBRARY"},
-  {id:"library", icon:"📚", label:"Notes Library"},
-];
+  const entries=Object.keys(notes)
+    .filter(k=>k.startsWith(dirKey+"_report_"))
+    .map(k=>{const d=k.replace(dirKey+"_report_","");return{date:d};})
+    .sort((a,b)=>b.date.localeCompare(a.date));
 
-function Sidebar({tab,setTab,collapsed,setCollapsed,protCount,libCount}){
-  let lastSection="";
-  return(
-    <div id="sidebar" className={collapsed?"collapsed":""}>
-      <div className="sb-logo">
-        <div className="title">🎓 Yashi's PhD</div>
-        <div className="sub">Lab · Life · Research</div>
+  const addEntry=()=>{
+    if(!newDate)return;
+    setNote(`${dirKey}_report_${newDate}`,"");
+    setAdding(false);
+    setOpenId(newDate);
+  };
+  const delEntry=d=>{
+    setNotes(n=>{const c={...n};delete c[`${dirKey}_report_${d}`];delete c[`${dirKey}_feedback_${d}`];return c;});
+    if(openId===d)setOpenId(null);
+  };
+
+  return(<>
+    <div className="card">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span className="tag" style={{background:color}}>{icon} {label}</span>
+          <span style={{fontSize:13,color:"#94a3b8"}}>{entries.length} session(s)</span>
+        </div>
+        <button className="btn" style={{background:color,fontSize:12,padding:"5px 11px"}} onClick={()=>setAdding(!adding)}>+ Add Session</button>
       </div>
-      {NAV.map(n=>{
-        const showSec=n.section&&n.section!==lastSection;
-        if(n.section)lastSection=n.section;
-        const badge=n.id==="protocols"?protCount:n.id==="library"?libCount:0;
-        return(
-          <React.Fragment key={n.id}>
-            {showSec&&<div className="sb-section">{n.section}</div>}
-            <div className={`sb-item${tab===n.id?" active":""}`} onClick={()=>setTab(n.id)}>
-              <span className="icon">{n.icon}</span>
-              <span className="label">{n.label}{badge>0?<span style={{marginLeft:6,background:"rgba(255,255,255,0.2)",borderRadius:10,padding:"1px 6px",fontSize:10}}>{badge}</span>:null}</span>
-            </div>
-          </React.Fragment>
-        );
-      })}
-      <div style={{flex:1}}/>
-      <div className="sb-divider"/>
-      <button className="sb-toggle" onClick={()=>setCollapsed(!collapsed)} title={collapsed?"Expand":"Collapse"}>
-        {collapsed?"▶":"◀"}
-      </button>
+      {adding&&<div style={{marginTop:12,padding:12,background:"#f8fafc",borderRadius:9,border:"1px solid #e2e8f0"}}>
+        <div className="lbl">Meeting date</div>
+        <div style={{display:"flex",gap:8}}>
+          <input className="inp" type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{marginBottom:0,flex:1}}/>
+          <button className="btn" style={{background:color}} onClick={addEntry}>Add</button>
+          <button className="btn" style={{background:"#94a3b8"}} onClick={()=>setAdding(false)}>Cancel</button>
+        </div>
+      </div>}
     </div>
-  );
+
+    {entries.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No sessions yet — click "+ Add Session"</div>}
+
+    {entries.map(e=>{
+      const isOpen=openId===e.date;
+      return(
+        <div key={e.date} className="card" style={{padding:0,overflow:"hidden"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}}
+            onClick={()=>setOpenId(isOpen?null:e.date)}>
+            <div>
+              <span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.date}</span>
+              <span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{parseD(e.date).toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span>
+            </div>
+            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+              <button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.date);}}>Delete</button>
+              <span style={{color:color,fontWeight:700}}>{isOpen?"▲":"▼"}</span>
+            </div>
+          </div>
+          {isOpen&&<div style={{padding:14}}>
+            <div style={{marginBottom:14}}>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+                <span style={{background:"#e0e7ff",color:"#4338ca",borderRadius:6,padding:"2px 9px",fontSize:12,fontWeight:700}}>📊 My Report</span>
+                <span style={{fontSize:11,color:"#94a3b8"}}>Progress · Results · Questions</span>
+              </div>
+              <RTE value={notes[`${dirKey}_report_${e.date}`]||""} onChange={v=>setNote(`${dirKey}_report_${e.date}`,v)} placeholder="What did I present? Key results, blockers, questions..." minH={150}/>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:10,margin:"6px 0 14px"}}>
+              <div style={{flex:1,height:1,background:"#e2e8f0"}}/>
+              <span style={{fontSize:10,color:"#94a3b8",fontWeight:700,letterSpacing:".06em"}}>SUPERVISOR FEEDBACK</span>
+              <div style={{flex:1,height:1,background:"#e2e8f0"}}/>
+            </div>
+            <div>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+                <span style={{background:"#dcfce7",color:"#15803d",borderRadius:6,padding:"2px 9px",fontSize:12,fontWeight:700}}>💬 Feedback</span>
+                <span style={{fontSize:11,color:"#94a3b8"}}>Comments · Next steps · Action items</span>
+              </div>
+              <RTE value={notes[`${dirKey}_feedback_${e.date}`]||""} onChange={v=>setNote(`${dirKey}_feedback_${e.date}`,v)} placeholder="Supervisor's comments, suggested next steps..." minH={130}/>
+            </div>
+          </div>}
+        </div>
+      );
+    })}
+  </>);
 }
 
-// ── Main App ──────────────────────────────────────────────────────────
+/* ── Friday Tab ── */
+function FridayTab({notes,setNotes,meeting,setMeeting,curDate}){
+  const [adding,setAdding]=useState(false);
+  const [newDate,setNewDate]=useState(curDate);
+  const [openId,setOpenId]=useState(null);
+  const setNote=(k,v)=>setNotes(n=>({...n,[k]:v}));
+
+  const entries=Object.keys(notes)
+    .filter(k=>k.startsWith("fri_pres_"))
+    .map(k=>({date:k.replace("fri_pres_","")}))
+    .sort((a,b)=>b.date.localeCompare(a.date));
+
+  const addEntry=()=>{
+    if(!newDate)return;
+    setNote(`fri_pres_${newDate}`,"");
+    setAdding(false);setOpenId(newDate);
+  };
+  const delEntry=d=>{setNotes(n=>{const c={...n};delete c[`fri_pres_${d}`];return c;});if(openId===d)setOpenId(null);};
+
+  return(<>
+    <div className="card">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span style={{fontWeight:700,fontSize:15}}>🎤 Friday Presentations</span>
+        </div>
+        <button className="btn" style={{background:"#9333ea",fontSize:12,padding:"5px 11px"}} onClick={()=>setAdding(!adding)}>+ Add Session</button>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:12,background:meeting.myTurn?"#fff7ed":"#f0fdf4",borderRadius:9,padding:"10px 13px",border:`1px solid ${meeting.myTurn?"#fed7aa":"#bbf7d0"}`}}>
+        <div>
+          <div style={{fontWeight:600,fontSize:14,color:meeting.myTurn?"#c2410c":"#15803d"}}>Is it your turn this Friday?</div>
+          <div style={{fontSize:12,color:"#64748b",marginTop:2}}>Toggle on when it's your week to present</div>
+        </div>
+        <button className="btn" style={{background:meeting.myTurn?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurn:!meeting.myTurn})}>
+          {meeting.myTurn?"✓ Done":"My Turn"}
+        </button>
+      </div>
+      {adding&&<div style={{marginTop:12,padding:12,background:"#f8fafc",borderRadius:9,border:"1px solid #e2e8f0"}}>
+        <div className="lbl">Presentation date</div>
+        <div style={{display:"flex",gap:8}}>
+          <input className="inp" type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{marginBottom:0,flex:1}}/>
+          <button className="btn" style={{background:"#9333ea"}} onClick={addEntry}>Add</button>
+          <button className="btn" style={{background:"#94a3b8"}} onClick={()=>setAdding(false)}>Cancel</button>
+        </div>
+      </div>}
+    </div>
+
+    {entries.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No presentation records yet</div>}
+
+    {entries.map(e=>{
+      const isOpen=openId===e.date;
+      return(
+        <div key={e.date} className="card" style={{padding:0,overflow:"hidden"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}}
+            onClick={()=>setOpenId(isOpen?null:e.date)}>
+            <div>
+              <span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.date}</span>
+              <span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{parseD(e.date).toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span>
+            </div>
+            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+              <button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.date);}}>Delete</button>
+              <span style={{color:"#9333ea",fontWeight:700}}>{isOpen?"▲":"▼"}</span>
+            </div>
+          </div>
+          {isOpen&&<div style={{padding:14}}>
+            <div className="lbl">📊 Presentation notes / outline</div>
+            <RTE value={notes[`fri_pres_${e.date}`]||""} onChange={v=>setNote(`fri_pres_${e.date}`,v)} placeholder="Key results to present, slide outline, questions..." minH={200}/>
+          </div>}
+        </div>
+      );
+    })}
+  </>);
+}
+
+/* ── NAV ── */
+const NAV=[
+  {id:"planner",icon:"📋",label:"Daily Plan",sec:"MAIN"},
+  {id:"ai_meet",icon:"🤖",label:"AI Meeting",sec:"MEETINGS"},
+  {id:"card_meet",icon:"🫀",label:"Cardioid Meeting"},
+  {id:"fri_meet",icon:"🎤",label:"Friday Presentation"},
+  {id:"events",icon:"🎯",label:"Deadlines",sec:"TRACKING"},
+  {id:"cells",icon:"🧫",label:"Cell Culture"},
+  {id:"orgs",icon:"🫀",label:"Organoids"},
+  {id:"notes",icon:"📝",label:"Daily Notes",sec:"NOTES"},
+  {id:"protocols",icon:"📂",label:"Protocols",sec:"LIBRARY"},
+  {id:"library",icon:"📚",label:"Notes Library"},
+];
+
+/* ── App ── */
 function App(){
   const [tab,setTab]=useState("planner");
-  const [collapsed,setCollapsed]=useState(false);
-  const [date,setDate]=useState(today());
-  const [cells,setCells]=useState(()=>LS.get("phd_cells",[]));
-  const [orgs,setOrgs]=useState(()=>LS.get("phd_orgs",[]));
-  const [ptasks,setPtasks]=useState(()=>LS.get("phd_ptasks",{}));
-  const [notes,setNotes]=useState(()=>LS.get("phd_notes",{}));
-  const [events,setEvents]=useState(()=>LS.get("phd_events",[]));
-  const [meeting,setMeeting]=useState(()=>LS.get("phd_meeting",{myTurnFriday:false}));
-  const [aiMeetings,  setAiMeetings]  = useState(()=>LS.get("phd_ai_meet",[]));
-  const [cardMeetings,setCardMeetings]= useState(()=>LS.get("phd_card_meet",[]));
-  const [libNotes,setLibNotes]=useState(()=>LS.get("phd_lib",[]));
-  const [done,setDone]=useState(()=>LS.get("phd_done",{}));
+  const [col,setCol]=useState(false);
+  const [date,setDate]=useState(todayStr());
+  const [cells,setCells]=useState(()=>LS.get("p_cells",[]));
+  const [orgs,setOrgs]=useState(()=>LS.get("p_orgs",[]));
+  const [ptasks,setPtasks]=useState(()=>LS.get("p_ptasks",{}));
+  const [notes,setNotes]=useState(()=>LS.get("p_notes",{}));
+  const [events,setEvents]=useState(()=>LS.get("p_events",[]));
+  const [meeting,setMeeting]=useState(()=>LS.get("p_meet",{myTurn:false}));
+  const [protocols,setProtocols]=useState(()=>LS.get("p_prot",[]));
+  const [libNotes,setLibNotes]=useState(()=>LS.get("p_lib",[]));
+  const [done,setDone]=useState(()=>LS.get("p_done",{}));
   const [modal,setModal]=useState(null);
-  const [nc,setNc]=useState({name:"",passage:0,passageDate:""});
-  const [no,setNo]=useState({name:"",type:"normal",format:"gel",seedDate:""});
+  const [expLib,setExpLib]=useState(null);
+  const [expProt,setExpProt]=useState(null);
   const [nt,setNt]=useState({type:"coding",title:"",time:"09:00",duration:60,detail:""});
   const [ne,setNe]=useState({cat:"poster",title:"",deadline:"",reminderDays:7,detail:""});
-  const [nm,setNm]=useState({date:today()});
-  const [np,setNp]=useState({title:"",category:"",content:""});
-  const [nl,setNl]=useState({title:"",tag:"",content:""});
-  const [expandProt,setExpandProt]=useState(null);
-  const [expandLib,setExpandLib]=useState(null);
+  const [nc,setNc]=useState({name:"",passage:0,passageDate:""});
+  const [no,setNo]=useState({name:"",type:"normal",format:"gel",seedDate:""});
+  const [np,setNp]=useState({title:"",category:""});
+  const [nl,setNl]=useState({title:"",tag:""});
 
-  useEffect(()=>LS.set("phd_cells",cells),[cells]);
-  useEffect(()=>LS.set("phd_orgs",orgs),[orgs]);
-  useEffect(()=>LS.set("phd_ptasks",ptasks),[ptasks]);
-  useEffect(()=>LS.set("phd_notes",notes),[notes]);
-  useEffect(()=>LS.set("phd_events",events),[events]);
-  useEffect(()=>LS.set("phd_meeting",meeting),[meeting]);
-  useEffect(()=>LS.set("phd_protocols",protocols),[protocols]);
-  useEffect(()=>LS.set("phd_lib",libNotes),[libNotes]);
-  useEffect(()=>LS.set("phd_done",done),[done]);
+  useEffect(()=>LS.set("p_cells",cells),[cells]);
+  useEffect(()=>LS.set("p_orgs",orgs),[orgs]);
+  useEffect(()=>LS.set("p_ptasks",ptasks),[ptasks]);
+  useEffect(()=>LS.set("p_notes",notes),[notes]);
+  useEffect(()=>LS.set("p_events",events),[events]);
+  useEffect(()=>LS.set("p_meet",meeting),[meeting]);
+  useEffect(()=>LS.set("p_prot",protocols),[protocols]);
+  useEffect(()=>LS.set("p_lib",libNotes),[libNotes]);
+  useEffect(()=>LS.set("p_done",done),[done]);
 
-  const toggleDone=(key)=>setDone(d=>{const n={...d};n[key]?delete n[key]:n[key]=true;return n;});
-
-  const navDay=n=>setDate(addDays(date,n));
-  const dow=parse(date).getDay();
   const setNote=(k,v)=>setNotes(n=>({...n,[k]:v}));
+  const navDay=n=>setDate(addDays(date,n));
+  const dow=parseD(date).getDay();
+  const toggleDone=k=>setDone(d=>{const n={...d};n[k]?delete n[k]:n[k]=true;return n;});
 
   const getLabTasks=d=>{
     const out=[];
-    cells.forEach(c=>{const day=diff(c.passageDate,d),media=getCellMedia(day);if(day>=4)out.push({cat:"cell",name:c.name,day,label:`Passage required! P${c.passage} D${day}`,detail:`${c.name} needs passaging (D${day})`,urgent:true});else if(media)out.push({cat:"cell",name:c.name,day,label:`Media: ${media}`,detail:`${c.name} P${c.passage} D${day} → ${media}`,urgent:false});});
-    orgs.forEach(o=>{const day=diff(o.seedDate,d)-3,task=(o.type==="normal"?getNormalTask:getVascTask)(day);if(task)out.push({cat:"org",name:o.name,day,label:task,detail:`${o.name} D${day} → ${task}`,urgent:false});});
+    cells.forEach(c=>{const day=diffD(c.passageDate,d),media=getCellMedia(day);if(day>=4)out.push({cat:"cell",name:c.name,day,label:`Passage! P${c.passage} D${day}`,detail:`${c.name} needs passaging (D${day})`,urgent:true});else if(media)out.push({cat:"cell",name:c.name,day,label:`Media: ${media}`,detail:`${c.name} P${c.passage} D${day} → ${media}`,urgent:false});});
+    orgs.forEach(o=>{const day=diffD(o.seedDate,d)-3,task=(o.type==="normal"?getNormal:getVasc)(day);if(task)out.push({cat:"org",name:o.name,day,label:task,detail:`${o.name} D${day} → ${task}`,urgent:false});});
     return out;
   };
-
-  const labToday=getLabTasks(date),labTomorrow=getLabTasks(addDays(date,1));
+  const labToday=getLabTasks(date);
+  const labTomorrow=getLabTasks(addDays(date,1));
   const personal=[...(ptasks[date]||[])].sort((a,b)=>a.time.localeCompare(b.time));
-  const activeEvents=events.filter(e=>!e.archived).map(e=>({...e,daysLeft:diff(today(),e.deadline)})).sort((a,b)=>a.daysLeft-b.daysLeft);
+  const activeEvents=events.filter(e=>!e.archived).map(e=>({...e,daysLeft:diffD(todayStr(),e.deadline)})).sort((a,b)=>a.daysLeft-b.daysLeft);
   const archivedEvents=events.filter(e=>e.archived);
-  const eventReminders=activeEvents.filter(e=>e.daysLeft>=0&&e.daysLeft<=e.reminderDays);
+  const reminders=activeEvents.filter(e=>e.daysLeft>=0&&e.daysLeft<=e.reminderDays);
 
   const exportICS=()=>{
     const evts=[];
     labToday.forEach((t,i)=>{const hr=String(9+i).padStart(2,"0"),ds=date.replace(/-/g,"");evts.push(`BEGIN:VEVENT\nSUMMARY:[Lab] ${t.name} – ${t.label}\nDTSTART:${ds}T${hr}0000\nDTEND:${ds}T${hr}3000\nEND:VEVENT`);});
-    personal.forEach(t=>{const[hh,mm]=t.time.split(":"),sm=parseInt(hh)*60+parseInt(mm),em=sm+(t.duration||60),ds=date.replace(/-/g,""),eH=String(Math.floor(em/60)).padStart(2,"0"),eM=String(em%60).padStart(2,"0"),tp=TASK_TYPES.find(x=>x.id===t.type);evts.push(`BEGIN:VEVENT\nSUMMARY:${tp?.label||""} ${t.title}\nDTSTART:${ds}T${hh}${mm}00\nDTEND:${ds}T${eH}${eM}00\nEND:VEVENT`);});
+    personal.forEach(t=>{const[hh,mm]=t.time.split(":"),sm=parseInt(hh)*60+parseInt(mm),em=sm+(t.duration||60),ds=date.replace(/-/g,""),eH=String(Math.floor(em/60)).padStart(2,"0"),eM=String(em%60).padStart(2,"0"),tp=TTYPES.find(x=>x.id===t.type);evts.push(`BEGIN:VEVENT\nSUMMARY:${tp?.label||""} ${t.title}\nDTSTART:${ds}T${hh}${mm}00\nDTEND:${ds}T${eH}${eM}00\nEND:VEVENT`);});
     if(!evts.length)return alert("No tasks to export.");
     const a=document.createElement("a");a.href="data:text/calendar;charset=utf-8,"+encodeURIComponent(`BEGIN:VCALENDAR\nVERSION:2.0\n${evts.join("\n")}\nEND:VCALENDAR`);a.download=`phd-${date}.ics`;a.click();
   };
 
-  const tabLabel=NAV.find(n=>n.id===tab)||{icon:"",label:""};
+  const curNav=NAV.find(n=>n.id===tab)||NAV[0];
+  let lastSec="";
 
   return(
     <div id="app">
-      <Sidebar tab={tab} setTab={setTab} collapsed={collapsed} setCollapsed={setCollapsed} protCount={protocols.length} libCount={libNotes.length}/>
+      {/* SIDEBAR */}
+      <div id="sidebar" className={col?"col":""}>
+        <div className="sb-logo">
+          <div className="t hidelabel">🎓 Yashi's PhD</div>
+          <div className="s hidelabel">Lab · Life · Research</div>
+          {col&&<div style={{fontSize:20,textAlign:"center",marginTop:4}}>🎓</div>}
+        </div>
+        {NAV.map(n=>{
+          const showSec=n.sec&&n.sec!==lastSec;
+          if(n.sec)lastSec=n.sec;
+          return(
+            <React.Fragment key={n.id}>
+              {showSec&&<div className="sb-sec hidelabel">{n.sec}</div>}
+              <div className={`sb-item${tab===n.id?" act":""}`} onClick={()=>setTab(n.id)}>
+                <span className="ico">{n.icon}</span>
+                <span className="lbl hidelabel">{n.label}</span>
+              </div>
+            </React.Fragment>
+          );
+        })}
+        <div style={{flex:1}}/>
+        <div className="sb-div"/>
+        <button className="sb-tog" onClick={()=>setCol(!col)}>{col?"▶":"◀"}</button>
+      </div>
 
+      {/* MAIN */}
       <div id="main">
-        {/* Topbar */}
         <div id="topbar">
-          <span style={{fontWeight:700,fontSize:16,color:"#1e3a5f"}}>{tabLabel?.icon} {tabLabel?.label}</span>
+          <span style={{fontWeight:700,fontSize:15,color:"#1e3a5f"}}>{curNav.icon} {curNav.label}</span>
           {(tab==="planner"||tab==="notes")&&<>
-            <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:8}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:6}}>
               <button onClick={()=>navDay(-1)} style={{background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:7,padding:"4px 10px",cursor:"pointer",fontWeight:700}}>◀</button>
-              <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:7,padding:"4px 10px",fontSize:14,outline:"none"}}/>
+              <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:7,padding:"4px 10px",fontSize:13,outline:"none"}}/>
               <button onClick={()=>navDay(1)} style={{background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:7,padding:"4px 10px",cursor:"pointer",fontWeight:700}}>▶</button>
-              <button onClick={()=>setDate(today())} style={{background:"#6366f1",color:"white",border:"none",borderRadius:7,padding:"4px 10px",cursor:"pointer",fontSize:12,fontWeight:600}}>Today</button>
+              <button onClick={()=>setDate(todayStr())} style={{background:"#6366f1",color:"white",border:"none",borderRadius:7,padding:"4px 10px",cursor:"pointer",fontSize:12,fontWeight:600}}>Today</button>
             </div>
-            <button onClick={exportICS} style={{marginLeft:"auto",background:"#1e3a5f",color:"white",border:"none",borderRadius:7,padding:"5px 13px",cursor:"pointer",fontWeight:700,fontSize:12}}>📅 Export .ics</button>
+            <button onClick={exportICS} style={{marginLeft:"auto",background:"#1e3a5f",color:"white",border:"none",borderRadius:7,padding:"5px 12px",cursor:"pointer",fontWeight:700,fontSize:12}}>📅 .ics</button>
           </>}
-          {/* Deadline banner */}
-          {eventReminders.length>0&&<div style={{width:"100%",marginTop:6,background:"#fef3c7",border:"1px solid #fcd34d",borderRadius:8,padding:"6px 10px"}}>
-            {eventReminders.map(e=><span key={e.id} style={{fontSize:12,color:"#92400e",marginRight:12}}>⚠️ <strong>{e.title}</strong> — {e.daysLeft===0?"DUE TODAY!":`${e.daysLeft}d left`}</span>)}
+          {reminders.length>0&&<div style={{width:"100%",marginTop:4,background:"#fef3c7",border:"1px solid #fcd34d",borderRadius:8,padding:"5px 10px"}}>
+            {reminders.map(e=><span key={e.id} style={{fontSize:12,color:"#92400e",marginRight:12}}>⚠️ <strong>{e.title}</strong> — {e.daysLeft===0?"DUE TODAY!":`${e.daysLeft}d left`}</span>)}
           </div>}
         </div>
 
-        {/* Content */}
         <div id="content">
 
           {/* ══ DAILY ══ */}
@@ -362,210 +485,87 @@ function App(){
               <b style={{color:"#1d4ed8"}}>🧪 Monday — Individual Lab Meeting</b>
               <div style={{display:"flex",gap:8,marginTop:6}}><span className="tag" style={{background:"#6366f1"}}>AI</span><span className="tag" style={{background:"#0891b2"}}>Cardioid</span></div>
             </div>}
-            {dow===5&&<div className="card" style={{background:meeting.myTurnFriday?"#fff7ed":"#f0fdf4",border:`1px solid ${meeting.myTurnFriday?"#fed7aa":"#bbf7d0"}`}}>
+            {dow===5&&<div className="card" style={{background:meeting.myTurn?"#fff7ed":"#f0fdf4",border:`1px solid ${meeting.myTurn?"#fed7aa":"#bbf7d0"}`}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div><b style={{color:meeting.myTurnFriday?"#c2410c":"#15803d"}}>🎤 Friday — Group Presentation</b>
-                <div style={{fontSize:13,color:meeting.myTurnFriday?"#ea580c":"#16a34a",marginTop:3}}>{meeting.myTurnFriday?"🔴 YOUR turn to present!":"✅ Not your turn this week"}</div></div>
-                <button className="btn" style={{background:meeting.myTurnFriday?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurnFriday:!meeting.myTurnFriday})}>{meeting.myTurnFriday?"✓ Done":"My Turn"}</button>
+                <div><b style={{color:meeting.myTurn?"#c2410c":"#15803d"}}>🎤 Friday — Group Presentation</b>
+                <div style={{fontSize:13,color:meeting.myTurn?"#ea580c":"#16a34a",marginTop:2}}>{meeting.myTurn?"🔴 YOUR turn to present!":"✅ Not your turn"}</div></div>
+                <button className="btn" style={{background:meeting.myTurn?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurn:!meeting.myTurn})}>{meeting.myTurn?"✓ Done":"My Turn"}</button>
               </div>
             </div>}
-
             <div className="card">
-              <div style={{fontWeight:700,fontSize:15,marginBottom:12}}>🔬 Lab Tasks</div>
-              {labToday.length===0?<div style={{color:"#94a3b8",textAlign:"center",padding:"14px 0",fontSize:14}}>No lab tasks today 🎉</div>
-                :labToday.map((t,i)=>{
-                  const k=`lab_${date}_${i}`;const isDone=!!done[k];
-                  return<div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:7,borderRadius:9,
-                    background:isDone?"#f0fdf4":t.urgent?"#fff1f2":"#f8faff",
-                    border:`1px solid ${isDone?"#bbf7d0":t.urgent?"#fecaca":"#e0e7ff"}`,
-                    opacity:isDone?0.7:1}}>
-                    <button onClick={()=>toggleDone(k)} title="Mark complete" style={{background:"none",border:`2px solid ${isDone?"#16a34a":"#cbd5e1"}`,borderRadius:"50%",width:22,height:22,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:isDone?"#16a34a":"transparent",fontSize:13,fontWeight:700}}>✓</button>
-                    <span className="tag" style={{background:t.cat==="cell"?"#8b5cf6":"#0891b2"}}>{t.cat==="cell"?"Cell":"Organoid"}</span>
-                    <div style={{flex:1,textDecoration:isDone?"line-through":"none"}}>
-                      <div style={{fontWeight:600,fontSize:14,color:isDone?"#94a3b8":t.urgent?"#dc2626":"#1e293b"}}>{t.name}</div>
-                      <div style={{fontSize:12,color:"#64748b"}}>{t.detail}</div>
-                    </div>
+              <div style={{fontWeight:700,fontSize:14,marginBottom:10}}>🔬 Lab Tasks</div>
+              {labToday.length===0?<div style={{color:"#94a3b8",textAlign:"center",padding:"12px 0",fontSize:13}}>No lab tasks today 🎉</div>
+                :labToday.map((t,i)=>{const k=`lab_${date}_${i}`,isDone=!!done[k];return(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",marginBottom:6,borderRadius:9,background:isDone?"#f0fdf4":t.urgent?"#fff1f2":"#f8faff",border:`1px solid ${isDone?"#bbf7d0":t.urgent?"#fecaca":"#e0e7ff"}`,opacity:isDone?.7:1}}>
+                    <button onClick={()=>toggleDone(k)} style={{background:"none",border:`2px solid ${isDone?"#16a34a":"#cbd5e1"}`,borderRadius:"50%",width:22,height:22,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:isDone?"#16a34a":"transparent",fontSize:12,fontWeight:700}}>✓</button>
+                    <span className="tag" style={{background:t.cat==="cell"?"#8b5cf6":"#0891b2",fontSize:10}}>{t.cat==="cell"?"Cell":"Organoid"}</span>
+                    <div style={{flex:1,textDecoration:isDone?"line-through":"none"}}><div style={{fontWeight:600,fontSize:13,color:isDone?"#94a3b8":t.urgent?"#dc2626":"#1e293b"}}>{t.name}</div><div style={{fontSize:11,color:"#64748b"}}>{t.detail}</div></div>
                     {!isDone&&t.urgent&&<span>⚠️</span>}
-                  </div>;
-                })}
+                  </div>);})}
             </div>
-
             <div className="card">
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                <div style={{fontWeight:700,fontSize:15}}>📅 Schedule</div>
-                <button className="btn" style={{background:"#6366f1"}} onClick={()=>{setNt({type:"coding",title:"",time:"09:00",duration:60,detail:""});setModal("task");}}>+ Add</button>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <div style={{fontWeight:700,fontSize:14}}>📅 Schedule</div>
+                <button className="btn" style={{background:"#6366f1",fontSize:12,padding:"5px 10px"}} onClick={()=>{setNt({type:"coding",title:"",time:"09:00",duration:60,detail:""});setModal("task");}}>+ Add</button>
               </div>
-              {personal.length===0?<div style={{color:"#94a3b8",textAlign:"center",padding:"14px 0",fontSize:14}}>No schedule — click "+ Add"</div>
-                :personal.map((t,i)=>{
-                  const tp=TASK_TYPES.find(x=>x.id===t.type);
-                  const k=`sch_${date}_${i}`;const isDone=!!done[k];
-                  return(
-                    <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:7,borderRadius:9,
-                      background:isDone?"#f0fdf4":"#fafafa",border:`1px solid ${isDone?"#bbf7d0":"#e5e7eb"}`,opacity:isDone?0.7:1}}>
-                      <button onClick={()=>toggleDone(k)} title="Mark complete" style={{background:"none",border:`2px solid ${isDone?"#16a34a":"#cbd5e1"}`,borderRadius:"50%",width:22,height:22,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:isDone?"#16a34a":"transparent",fontSize:13,fontWeight:700}}>✓</button>
-                      <div style={{textAlign:"center",minWidth:44}}><div style={{fontSize:13,fontWeight:700}}>{t.time}</div><div style={{fontSize:11,color:"#9ca3af"}}>{t.duration}m</div></div>
-                      <span className="tag" style={{background:tp?.color||"#6b7280"}}>{tp?.label||t.type}</span>
-                      <div style={{flex:1,textDecoration:isDone?"line-through":"none"}}><div style={{fontWeight:600,fontSize:14}}>{t.title}</div>{t.detail&&<div style={{fontSize:12,color:"#64748b"}}>{t.detail}</div>}</div>
-                      <button onClick={()=>setPtasks({...ptasks,[date]:(ptasks[date]||[]).filter((_,j)=>j!==i)})} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer",fontSize:18}}>✕</button>
-                    </div>
-                  );
-                })}
+              {personal.length===0?<div style={{color:"#94a3b8",textAlign:"center",padding:"12px 0",fontSize:13}}>No schedule — click "+ Add"</div>
+                :personal.map((t,i)=>{const tp=TTYPES.find(x=>x.id===t.type),k=`sch_${date}_${i}`,isDone=!!done[k];return(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",marginBottom:6,borderRadius:9,background:isDone?"#f0fdf4":"#fafafa",border:`1px solid ${isDone?"#bbf7d0":"#e5e7eb"}`,opacity:isDone?.7:1}}>
+                    <button onClick={()=>toggleDone(k)} style={{background:"none",border:`2px solid ${isDone?"#16a34a":"#cbd5e1"}`,borderRadius:"50%",width:22,height:22,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:isDone?"#16a34a":"transparent",fontSize:12,fontWeight:700}}>✓</button>
+                    <div style={{textAlign:"center",minWidth:40}}><div style={{fontSize:12,fontWeight:700}}>{t.time}</div><div style={{fontSize:10,color:"#9ca3af"}}>{t.duration}m</div></div>
+                    <span className="tag" style={{background:tp?.color||"#6b7280",fontSize:10}}>{tp?.label||t.type}</span>
+                    <div style={{flex:1,textDecoration:isDone?"line-through":"none"}}><div style={{fontWeight:600,fontSize:13}}>{t.title}</div>{t.detail&&<div style={{fontSize:11,color:"#64748b"}}>{t.detail}</div>}</div>
+                    <button onClick={()=>setPtasks({...ptasks,[date]:(ptasks[date]||[]).filter((_,j)=>j!==i)})} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer",fontSize:16}}>✕</button>
+                  </div>);})}
             </div>
-
             <div className="card" style={{background:"#f8faff",border:"1px solid #e0e7ff"}}>
-              <div style={{fontWeight:700,fontSize:14,color:"#4338ca",marginBottom:8}}>📅 Tomorrow — {addDays(date,1)}</div>
-              {labTomorrow.length===0?<div style={{color:"#a5b4fc",fontSize:13}}>No lab tasks</div>
-                :labTomorrow.map((t,i)=><div key={i} style={{fontSize:13,color:"#3730a3",marginBottom:4}}>🔬 <strong>{t.name}</strong>: {t.label}</div>)}
+              <div style={{fontWeight:700,fontSize:13,color:"#4338ca",marginBottom:6}}>📅 Tomorrow — {addDays(date,1)}</div>
+              {labTomorrow.length===0?<div style={{color:"#a5b4fc",fontSize:12}}>No lab tasks</div>
+                :labTomorrow.map((t,i)=><div key={i} style={{fontSize:12,color:"#3730a3",marginBottom:3}}>🔬 <strong>{t.name}</strong>: {t.label}</div>)}
             </div>
-
             <div className="card" style={{border:"1px solid #fde68a",background:"#fffbeb"}}>
-              <div style={{fontWeight:700,fontSize:15,marginBottom:4,color:"#92400e"}}>🌙 Daily Reflection</div>
-              <div style={{fontSize:12,color:"#b45309",marginBottom:10}}>What went well? What was difficult? What will you do differently tomorrow?</div>
-              <RTE value={notes[`reflect_${date}`]||""} onChange={v=>setNote(`reflect_${date}`,v)} placeholder="Today I accomplished... I struggled with... Tomorrow I will..." minH={140}/>
+              <div style={{fontWeight:700,fontSize:14,marginBottom:3,color:"#92400e"}}>🌙 Daily Reflection</div>
+              <div style={{fontSize:12,color:"#b45309",marginBottom:8}}>What went well? What was hard? What will you do differently?</div>
+              <RTE value={notes[`ref_${date}`]||""} onChange={v=>setNote(`ref_${date}`,v)} placeholder="Today I accomplished... I struggled with... Tomorrow I will..." minH={120}/>
             </div>
           </>)}
 
-          {/* ══ AI / CARDIOID MEETING ══ */}
-          {(tab==="ai_meet"||tab==="card_meet")&&(()=>{
-            const isAI=tab==="ai_meet";
-            const list=isAI?aiMeetings:cardMeetings;
-            const setList=isAI?setAiMeetings:setCardMeetings;
-            const color=isAI?"#6366f1":"#0891b2";
-            const icon=isAI?"🤖":"🫀";
-            const label=isAI?"AI Direction":"Cardioid Direction";
-            const sorted=[...list].sort((a,b)=>b.date.localeCompare(a.date));
-            return(<>
-              <div className="card">
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    <span className="tag" style={{background:color}}>{icon} {label}</span>
-                    <span style={{fontSize:13,color:"#64748b"}}>{list.length} record(s)</span>
-                  </div>
-                  <button className="btn" style={{background:color,fontSize:12,padding:"5px 12px"}}
-                    onClick={()=>{setNm({date:today()});setModal(isAI?"meet_ai":"meet_card");}}>+ Add Entry</button>
-                </div>
-              </div>
-              {sorted.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:40}}>No meeting records yet — click "+ Add Entry"</div>}
-              {sorted.map((m,i)=>{
-                const isOpen=expandProt===m.id;
-                return(
-                  <div key={m.id} className="card" style={{padding:0,overflow:"hidden"}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"11px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}}
-                      onClick={()=>setExpandProt(isOpen?null:m.id)}>
-                      <div>
-                        <span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{m.date}</span>
-                        <span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{new Date(m.date+"T12:00:00").toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span>
-                      </div>
-                      <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                        <button className="btn" style={{background:"#ef4444",padding:"3px 10px",fontSize:12}}
-                          onClick={ev=>{ev.stopPropagation();setList(list.filter(x=>x.id!==m.id));}}>Delete</button>
-                        <span style={{color:color,fontWeight:700}}>{isOpen?"▲":"▼"}</span>
-                      </div>
-                    </div>
-                    {isOpen&&<div style={{padding:"14px"}}>
-                      <div style={{marginBottom:14}}>
-                        <div style={{fontWeight:700,fontSize:13,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
-                          <span style={{background:"#e0e7ff",color:"#4338ca",borderRadius:6,padding:"2px 9px",fontSize:12}}>📊 My Report</span>
-                          <span style={{fontSize:11,color:"#94a3b8"}}>Progress · Results · Questions</span>
-                        </div>
-                        <RTE value={m.report||""} onChange={v=>setList(list.map(x=>x.id===m.id?{...x,report:v}:x))} placeholder="What did I present? Key results, blockers, questions I raised..." minH={160}/>
-                      </div>
-                      <div style={{display:"flex",alignItems:"center",gap:10,margin:"4px 0 14px"}}>
-                        <div style={{flex:1,height:1,background:"#e2e8f0"}}/>
-                        <span style={{fontSize:11,color:"#94a3b8",fontWeight:600}}>SUPERVISOR FEEDBACK</span>
-                        <div style={{flex:1,height:1,background:"#e2e8f0"}}/>
-                      </div>
-                      <div>
-                        <div style={{fontWeight:700,fontSize:13,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
-                          <span style={{background:"#dcfce7",color:"#15803d",borderRadius:6,padding:"2px 9px",fontSize:12}}>💬 Supervisor Feedback</span>
-                          <span style={{fontSize:11,color:"#94a3b8"}}>Comments · Next steps · Action items</span>
-                        </div>
-                        <RTE value={m.feedback||""} onChange={v=>setList(list.map(x=>x.id===m.id?{...x,feedback:v}:x))} placeholder="What feedback did I receive? What are the next steps suggested?..." minH={140}/>
-                      </div>
-                    </div>}
-                  </div>
-                );
-              })}
-            </>);
-          })()}
-
-          {/* ══ FRIDAY PRESENTATION ══ */}
-          {tab==="fri_meet"&&<div className="card">
-            <div style={{fontWeight:700,fontSize:16,marginBottom:14}}>🎤 Friday Group Presentation</div>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:meeting.myTurnFriday?"#fff7ed":"#f0fdf4",borderRadius:10,padding:"12px 14px",border:`1px solid ${meeting.myTurnFriday?"#fed7aa":"#bbf7d0"}`,marginBottom:12}}>
-              <div>
-                <div style={{fontWeight:600,marginBottom:3}}>Is it your turn this Friday?</div>
-                <div style={{fontSize:12,color:"#64748b"}}>Toggle on when it's your week to present</div>
-              </div>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <span style={{fontSize:13,fontWeight:600,color:meeting.myTurnFriday?"#ea580c":"#16a34a"}}>{meeting.myTurnFriday?"🔴 My Turn!":"✅ Not my turn"}</span>
-                <button className="btn" style={{background:meeting.myTurnFriday?"#16a34a":"#ea580c"}} onClick={()=>setMeeting({...meeting,myTurnFriday:!meeting.myTurnFriday})}>{meeting.myTurnFriday?"Mark Done":"It's My Turn"}</button>
-              </div>
-            </div>
-            {meeting.myTurnFriday&&<div style={{marginBottom:12}}>
-              <div className="lbl">📊 Presentation outline for this Friday</div>
-              <RTE value={notes[`fri_${getMondayOfWeek(date)}`]||""} onChange={v=>setNote(`fri_${getMondayOfWeek(date)}`,v)} placeholder="Key results, slide outline, questions to address..." minH={200}/>
-            </div>}
-            {/* Past presentations */}
-            {(()=>{
-              const past=Object.entries(notes).filter(([k,v])=>v&&k.startsWith("fri_")&&k!==`fri_${getMondayOfWeek(date)}`).sort(([a],[b])=>b.localeCompare(a));
-              if(!past.length)return null;
-              return<div style={{marginTop:4}}>
-                <div style={{fontWeight:700,fontSize:14,marginBottom:10,color:"#374151"}}>🗂 Past Presentations ({past.length})</div>
-                {past.map(([k,v])=>{
-                  const wk=k.replace("fri_","");
-                  const preview=v.replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,100);
-                  const isOpen=expandLib===k;
-                  return<div key={k} style={{borderRadius:9,border:"1px solid #e2e8f0",marginBottom:8,overflow:"hidden"}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 13px",background:"#f8fafc",cursor:"pointer"}} onClick={()=>setExpandLib(isOpen?null:k)}>
-                      <div>
-                        <span style={{fontWeight:700,fontSize:13,color:"#1e3a5f"}}>{fmtWeek(wk)}</span>
-                        {!isOpen&&<div style={{fontSize:12,color:"#64748b",marginTop:2}}>{preview}{preview.length===100?"…":""}</div>}
-                      </div>
-                      <span style={{color:"#9333ea",fontSize:13,fontWeight:600,marginLeft:10}}>{isOpen?"▲":"▼"}</span>
-                    </div>
-                    {isOpen&&<div style={{padding:"12px"}}>
-                      <RTE value={notes[k]||""} onChange={v=>setNote(k,v)} placeholder="" minH={140}/>
-                    </div>}
-                  </div>;
-                })}
-              </div>;
-            })()}
-          </div>}
+          {/* ══ MEETINGS ══ */}
+          {tab==="ai_meet"&&<MeetingTab dirKey="mon_ai" color="#6366f1" icon="🤖" label="AI Direction" notes={notes} setNotes={setNotes} curDate={date}/>}
+          {tab==="card_meet"&&<MeetingTab dirKey="mon_card" color="#0891b2" icon="🫀" label="Cardioid Direction" notes={notes} setNotes={setNotes} curDate={date}/>}
+          {tab==="fri_meet"&&<FridayTab notes={notes} setNotes={setNotes} meeting={meeting} setMeeting={setMeeting} curDate={date}/>}
 
           {/* ══ EVENTS ══ */}
           {tab==="events"&&(<>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-              <strong style={{fontSize:15}}>🎯 Deadlines & Events</strong>
-              <button className="btn" style={{background:"#1e3a5f"}} onClick={()=>{setNe({cat:"poster",title:"",deadline:"",reminderDays:7,detail:""});setModal("event");}}>+ Add Event</button>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <strong style={{fontSize:14}}>🎯 Deadlines & Events</strong>
+              <button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNe({cat:"poster",title:"",deadline:"",reminderDays:7,detail:""});setModal("event");}}>+ Add</button>
             </div>
-            {activeEvents.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:40}}>No upcoming events</div>}
-            {activeEvents.map(e=>{
-              const cat=EVENT_CATS.find(x=>x.id===e.cat),urgent=e.daysLeft<=e.reminderDays&&e.daysLeft>=0,overdue=e.daysLeft<0;
-              return<div key={e.id} className="card" style={{borderLeft:`4px solid ${overdue?"#ef4444":urgent?"#f59e0b":cat?.color||"#94a3b8"}`}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,flexWrap:"wrap"}}>
+            {activeEvents.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No upcoming events</div>}
+            {activeEvents.map(e=>{const cat=ECATS.find(x=>x.id===e.cat),urgent=e.daysLeft<=e.reminderDays&&e.daysLeft>=0,overdue=e.daysLeft<0;return(
+              <div key={e.id} className="card" style={{borderLeft:`4px solid ${overdue?"#ef4444":urgent?"#f59e0b":cat?.color||"#94a3b8"}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
                   <div style={{flex:1}}>
-                    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:4}}>
+                    <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:4}}>
                       <span className="tag" style={{background:cat?.color||"#94a3b8"}}>{cat?.label||e.cat}</span>
                       {overdue&&<span className="tag" style={{background:"#ef4444"}}>OVERDUE</span>}
-                      {!overdue&&urgent&&<span className="tag" style={{background:"#f59e0b"}}>⚠️ Due Soon</span>}
+                      {!overdue&&urgent&&<span className="tag" style={{background:"#f59e0b"}}>⚠️ Soon</span>}
                     </div>
-                    <div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{e.title}</div>
-                    {e.detail&&<div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{e.detail}</div>}
-                    <div style={{fontSize:13}}><span style={{color:"#64748b"}}>Deadline: </span><strong style={{color:overdue?"#ef4444":urgent?"#f59e0b":"#334155"}}>{e.deadline}</strong><span style={{marginLeft:8,fontSize:12,color:overdue?"#ef4444":urgent?"#f59e0b":"#94a3b8"}}>{overdue?`(${Math.abs(e.daysLeft)}d overdue)`:e.daysLeft===0?"🔴 TODAY!":`(${e.daysLeft}d left)`}</span></div>
-                    {!overdue&&<div style={{marginTop:8,height:4,background:"#f1f5f9",borderRadius:4,overflow:"hidden"}}><div style={{height:"100%",borderRadius:4,width:`${Math.min(100,Math.max(0,((e.reminderDays-e.daysLeft)/e.reminderDays)*100))}%`,background:e.daysLeft<=3?"#ef4444":e.daysLeft<=7?"#f59e0b":"#10b981"}}/></div>}
+                    <div style={{fontWeight:700,fontSize:14,marginBottom:2}}>{e.title}</div>
+                    {e.detail&&<div style={{fontSize:12,color:"#64748b",marginBottom:3}}>{e.detail}</div>}
+                    <div style={{fontSize:12}}><span style={{color:"#64748b"}}>Deadline: </span><strong style={{color:overdue?"#ef4444":urgent?"#f59e0b":"#334155"}}>{e.deadline}</strong><span style={{marginLeft:6,color:overdue?"#ef4444":urgent?"#f59e0b":"#94a3b8"}}>{overdue?`(${Math.abs(e.daysLeft)}d overdue)`:e.daysLeft===0?"🔴 TODAY!":`(${e.daysLeft}d left)`}</span></div>
+                    {!overdue&&<div style={{marginTop:6,height:3,background:"#f1f5f9",borderRadius:3,overflow:"hidden"}}><div style={{height:"100%",borderRadius:3,width:`${Math.min(100,Math.max(0,((e.reminderDays-e.daysLeft)/e.reminderDays)*100))}%`,background:e.daysLeft<=3?"#ef4444":e.daysLeft<=7?"#f59e0b":"#10b981"}}/></div>}
                   </div>
-                  <div style={{display:"flex",gap:6,flexDirection:"column"}}>
-                    <button className="btn" style={{background:"#10b981"}} onClick={()=>setEvents(events.map(x=>x.id===e.id?{...x,archived:true}:x))}>✓ Done</button>
-                    <button className="btn" style={{background:"#ef4444"}} onClick={()=>setEvents(events.filter(x=>x.id!==e.id))}>✕</button>
+                  <div style={{display:"flex",gap:5,flexDirection:"column"}}>
+                    <button className="btn" style={{background:"#10b981",fontSize:12,padding:"4px 10px"}} onClick={()=>setEvents(events.map(x=>x.id===e.id?{...x,archived:true}:x))}>✓ Done</button>
+                    <button className="btn" style={{background:"#ef4444",fontSize:12,padding:"4px 10px"}} onClick={()=>setEvents(events.filter(x=>x.id!==e.id))}>✕</button>
                   </div>
                 </div>
-              </div>;
-            })}
-            {archivedEvents.length>0&&<details style={{marginTop:8}}><summary style={{cursor:"pointer",color:"#94a3b8",fontSize:13,fontWeight:600,padding:"8px 0"}}>✅ Archived ({archivedEvents.length})</summary>
-              {archivedEvents.map(e=>{const cat=EVENT_CATS.find(x=>x.id===e.cat);return<div key={e.id} className="card" style={{opacity:.6,marginTop:8}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <div><span className="tag" style={{background:cat?.color||"#94a3b8"}}>{cat?.label||e.cat}</span><span style={{marginLeft:8,fontWeight:600}}>{e.title}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{e.deadline}</span></div>
+              </div>);})}
+            {archivedEvents.length>0&&<details style={{marginTop:6}}><summary style={{cursor:"pointer",color:"#94a3b8",fontSize:13,fontWeight:600,padding:"6px 0"}}>✅ Archived ({archivedEvents.length})</summary>
+              {archivedEvents.map(e=>{const cat=ECATS.find(x=>x.id===e.cat);return<div key={e.id} className="card" style={{opacity:.6,marginTop:6}}>
+                <div style={{display:"flex",justifyContent:"space-between"}}>
+                  <div><span className="tag" style={{background:cat?.color||"#94a3b8"}}>{cat?.label||e.cat}</span><span style={{marginLeft:8,fontWeight:600,fontSize:13}}>{e.title}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{e.deadline}</span></div>
                   <button onClick={()=>setEvents(events.filter(x=>x.id!==e.id))} style={{background:"none",border:"none",color:"#cbd5e1",cursor:"pointer"}}>✕</button>
                 </div>
               </div>;})}
@@ -574,233 +574,160 @@ function App(){
 
           {/* ══ CELLS ══ */}
           {tab==="cells"&&(<>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-              <strong style={{fontSize:15}}>🧫 Cell Line Tracker</strong>
-              <button className="btn" style={{background:"#8b5cf6"}} onClick={()=>{setNc({name:"",passage:0,passageDate:date});setModal("cell");}}>+ Add</button>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <strong style={{fontSize:14}}>🧫 Cell Line Tracker</strong>
+              <button className="btn" style={{background:"#8b5cf6",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNc({name:"",passage:0,passageDate:date});setModal("cell");}}>+ Add</button>
             </div>
-            <div className="card" style={{background:"#fafafa",padding:"10px 14px",marginBottom:12,fontSize:12,color:"#64748b"}}><strong style={{color:"#334155"}}>Protocol:</strong> D0: Ri+E8 → D1: E8 → D2–D3: E8F → D4+: Passage required</div>
-            {cells.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:40}}>No cell lines added</div>}
-            {cells.map((c,i)=>{const day=diff(c.passageDate,date),media=getCellMedia(day),warn=day>=4;return(
+            <div className="card" style={{background:"#fafafa",padding:"9px 13px",marginBottom:10,fontSize:12,color:"#64748b"}}><strong style={{color:"#334155"}}>Protocol:</strong> D0: Ri+E8 → D1: E8 → D2–D3: E8F → D4+: Passage required</div>
+            {cells.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No cell lines added</div>}
+            {cells.map((c,i)=>{const day=diffD(c.passageDate,date),media=getCellMedia(day),warn=day>=4;return(
               <div key={c.id} className="card" style={{borderLeft:`4px solid ${warn?"#ef4444":media?"#10b981":"#e2e8f0"}`}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8}}>
-                  <div><span style={{fontWeight:700,fontSize:15}}>{c.name}</span><span className="tag" style={{background:"#8b5cf6",marginLeft:8}}>P{c.passage}</span><div style={{color:"#64748b",fontSize:12,marginTop:3}}>Passaged: {c.passageDate} | Today: <strong>D{day}</strong></div></div>
-                  <div style={{display:"flex",gap:6}}>
-                    <button className="btn" style={{background:"#3b82f6"}} onClick={()=>setCells(cells.map((x,j)=>j===i?{...x,passage:x.passage+1,passageDate:date}:x))}>Passage → P{c.passage+1}</button>
-                    <button className="btn" style={{background:"#ef4444"}} onClick={()=>setCells(cells.filter((_,j)=>j!==i))}>✕</button>
-                  </div>
+                <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+                  <div><span style={{fontWeight:700,fontSize:14}}>{c.name}</span><span className="tag" style={{background:"#8b5cf6",marginLeft:7}}>P{c.passage}</span><div style={{color:"#64748b",fontSize:12,marginTop:2}}>Passaged: {c.passageDate} | Today: <strong>D{day}</strong></div></div>
+                  <div style={{display:"flex",gap:6}}><button className="btn" style={{background:"#3b82f6",fontSize:12,padding:"5px 10px"}} onClick={()=>setCells(cells.map((x,j)=>j===i?{...x,passage:x.passage+1,passageDate:date}:x))}>Passage → P{c.passage+1}</button><button className="btn" style={{background:"#ef4444",fontSize:12,padding:"5px 10px"}} onClick={()=>setCells(cells.filter((_,j)=>j!==i))}>✕</button></div>
                 </div>
-                <div style={{marginTop:10,padding:"8px 12px",borderRadius:8,background:warn?"#fff1f2":media?"#f0fdf4":"#f8fafc",border:`1px solid ${warn?"#fecaca":media?"#bbf7d0":"#e2e8f0"}`}}>
-                  {warn?<span style={{color:"#dc2626",fontWeight:700}}>⚠️ Passage required! (D{day})</span>:media?<span style={{color:"#16a34a",fontWeight:700}}>💊 Today: {media}</span>:<span style={{color:"#94a3b8"}}>No action today</span>}
+                <div style={{marginTop:8,padding:"7px 11px",borderRadius:8,background:warn?"#fff1f2":media?"#f0fdf4":"#f8fafc",border:`1px solid ${warn?"#fecaca":media?"#bbf7d0":"#e2e8f0"}`}}>
+                  {warn?<span style={{color:"#dc2626",fontWeight:700,fontSize:13}}>⚠️ Passage required! (D{day})</span>:media?<span style={{color:"#16a34a",fontWeight:700,fontSize:13}}>💊 Today: {media}</span>:<span style={{color:"#94a3b8",fontSize:13}}>No action today</span>}
                 </div>
-              </div>
-            );})}
+              </div>);})}
           </>)}
 
           {/* ══ ORGANOIDS ══ */}
           {tab==="orgs"&&(<>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-              <strong style={{fontSize:15}}>🫀 Organoid Tracker</strong>
-              <button className="btn" style={{background:"#0891b2"}} onClick={()=>{setNo({name:"",type:"normal",format:"gel",seedDate:date});setModal("org");}}>+ Add Batch</button>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <strong style={{fontSize:14}}>🫀 Organoid Tracker</strong>
+              <button className="btn" style={{background:"#0891b2",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNo({name:"",type:"normal",format:"gel",seedDate:date});setModal("org");}}>+ Add Batch</button>
             </div>
-            {orgs.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:40}}>No batches added</div>}
+            {orgs.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}>No batches added</div>}
             {orgs.map((o,i)=>{
-              const day=diff(o.seedDate,date)-3,getTask=o.type==="normal"?getNormalTask:getVascTask,todayTask=getTask(day),tc=o.type==="normal"?"#0891b2":"#9333ea";
-              const d0=parse(o.seedDate);d0.setDate(d0.getDate()+3);
-              const upcoming=[];for(let d=day+1;d<=21&&upcoming.length<5;d++){const t=getTask(d);if(t)upcoming.push({day:d,task:t,date:addDays(o.seedDate,d+3)});}
-              return<div key={o.id} className="card" style={{borderLeft:`4px solid ${tc}`}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8}}>
-                  <div>
-                    <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
-                      <span style={{fontWeight:700,fontSize:15}}>{o.name}</span>
-                      <span className="tag" style={{background:tc}}>{o.type==="normal"?"Normal":"Vascularized"}</span>
-                      <span className="tag" style={{background:"#f59e0b"}}>{o.format.toUpperCase()}</span>
-                      {day>21&&<span className="tag" style={{background:"#10b981"}}>✅ Complete</span>}
+              const day=diffD(o.seedDate,date)-3,getTask=o.type==="normal"?getNormal:getVasc,todayTask=getTask(day),tc=o.type==="normal"?"#0891b2":"#9333ea";
+              const d0=parseD(o.seedDate);d0.setDate(d0.getDate()+3);
+              const upcoming=[];for(let d=day+1;d<=21&&upcoming.length<4;d++){const t=getTask(d);if(t)upcoming.push({day:d,task:t,date:addDays(o.seedDate,d+3)});}
+              return(
+                <div key={o.id} className="card" style={{borderLeft:`4px solid ${tc}`}}>
+                  <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+                    <div>
+                      <div style={{display:"flex",gap:5,alignItems:"center",flexWrap:"wrap"}}><span style={{fontWeight:700,fontSize:14}}>{o.name}</span><span className="tag" style={{background:tc,fontSize:10}}>{o.type==="normal"?"Normal":"Vasc"}</span><span className="tag" style={{background:"#f59e0b",fontSize:10}}>{o.format.toUpperCase()}</span>{day>21&&<span className="tag" style={{background:"#10b981",fontSize:10}}>✅ Done</span>}</div>
+                      <div style={{color:"#64748b",fontSize:12,marginTop:2}}>Seeding: {o.seedDate} | D0: {fmt(d0)} | Today: <strong>D{day}</strong></div>
                     </div>
-                    <div style={{color:"#64748b",fontSize:12,marginTop:3}}>Seeding: {o.seedDate} | D0: {fmt(d0)} | Today: <strong>D{day}</strong></div>
+                    <button className="btn" style={{background:"#ef4444",fontSize:12,padding:"5px 10px"}} onClick={()=>setOrgs(orgs.filter((_,j)=>j!==i))}>✕</button>
                   </div>
-                  <button className="btn" style={{background:"#ef4444"}} onClick={()=>setOrgs(orgs.filter((_,j)=>j!==i))}>✕</button>
+                  <div style={{marginTop:8,padding:"7px 11px",borderRadius:8,background:todayTask?"#eff6ff":day>21?"#f0fdf4":"#f8fafc",border:`1px solid ${todayTask?"#bfdbfe":day>21?"#bbf7d0":"#e2e8f0"}`}}>
+                    {todayTask?<span style={{color:"#1d4ed8",fontWeight:700,fontSize:13}}>📋 Today: {todayTask}</span>:day>21?<span style={{color:"#16a34a",fontWeight:700,fontSize:13}}>✅ Complete</span>:day<-3?<span style={{color:"#94a3b8",fontSize:13}}>⏳ Starts in {-3-day}d</span>:<span style={{color:"#94a3b8",fontSize:13}}>No action (D{day})</span>}
+                  </div>
+                  {upcoming.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:7}}>{upcoming.map(u=><div key={u.day} className="pill"><span style={{color:"#94a3b8"}}>{u.date} </span><strong style={{color:tc}}>D{u.day}</strong>: {u.task}</div>)}</div>}
                 </div>
-                <div style={{marginTop:10,padding:"8px 12px",borderRadius:8,background:todayTask?"#eff6ff":day>21?"#f0fdf4":"#f8fafc",border:`1px solid ${todayTask?"#bfdbfe":day>21?"#bbf7d0":"#e2e8f0"}`}}>
-                  {todayTask?<span style={{color:"#1d4ed8",fontWeight:700}}>📋 Today: {todayTask}</span>:day>21?<span style={{color:"#16a34a",fontWeight:700}}>✅ Complete</span>:day<-3?<span style={{color:"#94a3b8"}}>⏳ Starts in {-3-day}d</span>:<span style={{color:"#94a3b8"}}>No action (D{day})</span>}
-                </div>
-                {upcoming.length>0&&<div style={{display:"flex",gap:5,flexWrap:"wrap",marginTop:8}}>{upcoming.map(u=><div key={u.day} className="pill" style={{padding:"4px 9px"}}><span style={{color:"#94a3b8"}}>{u.date} </span><strong style={{color:tc}}>D{u.day}</strong>: {u.task}</div>)}</div>}
-              </div>;
-            })}
+              );})}
           </>)}
 
-          {/* ══ DAILY NOTES ══ */}
+          {/* ══ NOTES ══ */}
           {tab==="notes"&&(<>
             <div className="card">
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
-                <strong style={{fontSize:15}}>📝 Notes — {date}</strong>
-                <button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"5px 12px"}} onClick={()=>{
-                  const entries=Object.entries(notes).filter(([k,v])=>v&&!k.startsWith("mon_")&&!k.startsWith("fri_")).sort(([a],[b])=>b.localeCompare(a));
-                  if(!entries.length)return alert("No notes to export.");
-                  const txt=entries.map(([d,v])=>`=== ${d} ===\n${v.replace(/<[^>]+>/g,"")}\n`).join("\n");
-                  const a=document.createElement("a");a.href="data:text/plain;charset=utf-8,"+encodeURIComponent(txt);a.download="phd-daily-logs.txt";a.click();
-                }}>⬇ Export All Logs</button>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:6}}>
+                <strong style={{fontSize:14}}>📝 Notes — {date}</strong>
+                <button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"4px 11px"}} onClick={()=>{
+                  const ents=Object.entries(notes).filter(([k,v])=>v&&k.match(/^\d{4}-\d{2}-\d{2}$/)).sort(([a],[b])=>b.localeCompare(a));
+                  if(!ents.length)return alert("No notes to export.");
+                  const txt=ents.map(([d,v])=>`=== ${d} ===\n${v.replace(/<[^>]+>/g,"")}\n`).join("\n");
+                  const a=document.createElement("a");a.href="data:text/plain;charset=utf-8,"+encodeURIComponent(txt);a.download="phd-logs.txt";a.click();
+                }}>⬇ Export All</button>
               </div>
-              <RTE value={notes[date]||""} onChange={v=>setNote(date,v)} placeholder="Daily notes, observations, thoughts..." minH={320}/>
-              <div style={{fontSize:11,color:"#94a3b8",marginTop:6}}>Auto-saved to browser ✓</div>
+              <RTE value={notes[date]||""} onChange={v=>setNote(date,v)} placeholder="Daily notes, observations, thoughts..." minH={300}/>
+              <div style={{fontSize:11,color:"#94a3b8",marginTop:5}}>Auto-saved ✓</div>
             </div>
-
-            {/* Past logs */}
             {(()=>{
-              const past=Object.entries(notes)
-                .filter(([k,v])=>v&&k.match(/^\d{4}-\d{2}-\d{2}$/)&&k!==date)
-                .sort(([a],[b])=>b.localeCompare(a));
+              const past=Object.entries(notes).filter(([k,v])=>v&&k.match(/^\d{4}-\d{2}-\d{2}$/)&&k!==date).sort(([a],[b])=>b.localeCompare(a));
               if(!past.length)return null;
-              return(
-                <div className="card">
-                  <div style={{fontWeight:700,fontSize:14,marginBottom:12,color:"#374151"}}>🗂 Past Log Entries ({past.length})</div>
-                  {past.map(([d,v])=>{
-                    const preview=v.replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,120);
-                    return(
-                      <div key={d} style={{borderRadius:9,border:"1px solid #e2e8f0",marginBottom:8,overflow:"hidden"}}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 13px",background:"#f8fafc",cursor:"pointer"}}
-                          onClick={()=>setDate(d)}>
-                          <div>
-                            <span style={{fontWeight:700,fontSize:13,color:"#1e3a5f"}}>{d}</span>
-                            <span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{new Date(d+"T12:00:00").toLocaleDateString("en",{weekday:"short"})}</span>
-                            <div style={{fontSize:12,color:"#64748b",marginTop:2}}>{preview}{preview.length===120?"…":""}</div>
-                          </div>
-                          <span style={{color:"#6366f1",fontSize:13,fontWeight:600,flexShrink:0,marginLeft:10}}>Open →</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
+              return<div className="card">
+                <div style={{fontWeight:700,fontSize:13,marginBottom:10,color:"#374151"}}>🗂 Past Entries ({past.length})</div>
+                {past.map(([d,v])=>{const preview=v.replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,100);return(
+                  <div key={d} style={{borderRadius:8,border:"1px solid #e2e8f0",marginBottom:7,overflow:"hidden"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",background:"#f8fafc",cursor:"pointer"}} onClick={()=>setDate(d)}>
+                      <div><span style={{fontWeight:700,fontSize:13,color:"#1e3a5f"}}>{d}</span><span style={{marginLeft:6,fontSize:11,color:"#94a3b8"}}>{parseD(d).toLocaleDateString("en",{weekday:"short"})}</span><div style={{fontSize:12,color:"#64748b",marginTop:1}}>{preview}{preview.length===100?"…":""}</div></div>
+                      <span style={{color:"#6366f1",fontSize:12,fontWeight:600,flexShrink:0,marginLeft:8}}>Open →</span>
+                    </div>
+                  </div>);})}
+              </div>;
             })()}
           </>)}
 
           {/* ══ PROTOCOLS ══ */}
           {tab==="protocols"&&(<>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-              <strong style={{fontSize:15}}>📂 Protocols</strong>
-              <button className="btn" style={{background:"#1e3a5f"}} onClick={()=>{setNp({title:"",category:"",content:""});setModal("prot");}}>+ Add Protocol</button>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <strong style={{fontSize:14}}>📂 Protocols</strong>
+              <button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNp({title:"",category:""});setModal("prot");}}>+ Add</button>
             </div>
-            {protocols.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:40}}>
-              <div style={{fontSize:32,marginBottom:8}}>📂</div>
-              <div style={{fontWeight:600,marginBottom:4}}>No protocols yet</div>
-              <div style={{fontSize:13}}>Add your lab protocols — cell culture, organoid, staining, etc.</div>
-            </div>}
-            {protocols.map((p,i)=>(
-              <div key={p.id} className="card">
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}} onClick={()=>setExpandProt(expandProt===p.id?null:p.id)}>
-                  <div>
-                    <div style={{display:"flex",alignItems:"center",gap:8}}>
-                      <span style={{fontWeight:700,fontSize:15}}>{p.title}</span>
-                      {p.category&&<span className="tag" style={{background:"#475569"}}>{p.category}</span>}
-                    </div>
-                  </div>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    <button className="btn" style={{background:"#ef4444",padding:"4px 10px",fontSize:12}} onClick={e=>{e.stopPropagation();setProtocols(protocols.filter((_,j)=>j!==i));}}>✕</button>
-                    <span style={{color:"#94a3b8",fontSize:18}}>{expandProt===p.id?"▲":"▼"}</span>
-                  </div>
+            {protocols.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}><div style={{fontSize:28,marginBottom:6}}>📂</div>Add your lab protocols</div>}
+            {protocols.map((p,i)=>{const isOpen=expProt===p.id;return(
+              <div key={p.id} className="card" style={{padding:0,overflow:"hidden"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 13px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setExpProt(isOpen?null:p.id)}>
+                  <div style={{display:"flex",alignItems:"center",gap:7}}><span style={{fontWeight:700,fontSize:14}}>{p.title}</span>{p.category&&<span className="tag" style={{background:"#475569"}}>{p.category}</span>}</div>
+                  <div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",fontSize:12,padding:"3px 9px"}} onClick={e=>{e.stopPropagation();setProtocols(protocols.filter((_,j)=>j!==i));}}>✕</button><span style={{color:"#94a3b8",fontSize:16}}>{isOpen?"▲":"▼"}</span></div>
                 </div>
-                {expandProt===p.id&&<div style={{marginTop:12}}>
-                  <RTE value={p.content||""} onChange={v=>setProtocols(protocols.map((x,j)=>j===i?{...x,content:v}:x))} placeholder="Write protocol steps..." minH={200}/>
-                </div>}
-              </div>
-            ))}
+                {isOpen&&<div style={{padding:13}}><RTE value={p.content||""} onChange={v=>setProtocols(protocols.map((x,j)=>j===i?{...x,content:v}:x))} placeholder="Write protocol steps..." minH={180}/></div>}
+              </div>);})}
           </>)}
 
-          {/* ══ NOTES LIBRARY ══ */}
+          {/* ══ LIBRARY ══ */}
           {tab==="library"&&(<>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-              <strong style={{fontSize:15}}>📚 Notes Library</strong>
-              <button className="btn" style={{background:"#1e3a5f"}} onClick={()=>{setNl({title:"",tag:"",content:""});setModal("lib");}}>+ Add Note</button>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <strong style={{fontSize:14}}>📚 Notes Library</strong>
+              <button className="btn" style={{background:"#1e3a5f",fontSize:12,padding:"5px 11px"}} onClick={()=>{setNl({title:"",tag:""});setModal("lib");}}>+ Add Note</button>
             </div>
-            {libNotes.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:40}}>
-              <div style={{fontSize:32,marginBottom:8}}>📚</div>
-              <div style={{fontWeight:600,marginBottom:4}}>No saved notes yet</div>
-              <div style={{fontSize:13}}>Save paper summaries, lecture notes, ideas, references…</div>
-            </div>}
-            {libNotes.map((n,i)=>(
-              <div key={n.id} className="card">
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}} onClick={()=>setExpandLib(expandLib===n.id?null:n.id)}>
-                  <div>
-                    <div style={{display:"flex",alignItems:"center",gap:8}}>
-                      <span style={{fontWeight:700,fontSize:15}}>{n.title}</span>
-                      {n.tag&&<span className="tag" style={{background:"#8b5cf6"}}>{n.tag}</span>}
-                    </div>
-                    <div style={{fontSize:11,color:"#94a3b8",marginTop:2}}>{n.date}</div>
-                  </div>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    <button className="btn" style={{background:"#ef4444",padding:"4px 10px",fontSize:12}} onClick={e=>{e.stopPropagation();setLibNotes(libNotes.filter((_,j)=>j!==i));}}>✕</button>
-                    <span style={{color:"#94a3b8",fontSize:18}}>{expandLib===n.id?"▲":"▼"}</span>
-                  </div>
+            {libNotes.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}><div style={{fontSize:28,marginBottom:6}}>📚</div>Save paper summaries, lecture notes, ideas…</div>}
+            {libNotes.map((n,i)=>{const isOpen=expLib===n.id;return(
+              <div key={n.id} className="card" style={{padding:0,overflow:"hidden"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 13px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setExpLib(isOpen?null:n.id)}>
+                  <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap"}}><span style={{fontWeight:700,fontSize:14}}>{n.title}</span>{n.tag&&<span className="tag" style={{background:"#8b5cf6"}}>{n.tag}</span>}<span style={{fontSize:11,color:"#94a3b8"}}>{n.date}</span></div>
+                  <div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",fontSize:12,padding:"3px 9px"}} onClick={e=>{e.stopPropagation();setLibNotes(libNotes.filter((_,j)=>j!==i));}}>✕</button><span style={{color:"#94a3b8",fontSize:16}}>{isOpen?"▲":"▼"}</span></div>
                 </div>
-                {expandLib===n.id&&<div style={{marginTop:12}}>
-                  <RTE value={n.content||""} onChange={v=>setLibNotes(libNotes.map((x,j)=>j===i?{...x,content:v}:x))} placeholder="Notes, summaries, references..." minH={200}/>
-                </div>}
-              </div>
-            ))}
+                {isOpen&&<div style={{padding:13}}><RTE value={n.content||""} onChange={v=>setLibNotes(libNotes.map((x,j)=>j===i?{...x,content:v}:x))} placeholder="Notes, summaries, references..." minH={180}/></div>}
+              </div>);})}
           </>)}
 
-        </div>{/* end content */}
-      </div>{/* end main */}
-
-      {/* ══ MODALS ══ */}
-      {modal==="cell"&&<Modal title="➕ Add Cell Line" onClose={()=>setModal(null)}>
-        <label className="lbl">Name</label><input className="inp" value={nc.name} onChange={e=>setNc({...nc,name:e.target.value})} placeholder="e.g. iPSC-Line1"/>
-        <label className="lbl">Passage (P)</label><input className="inp" type="number" value={nc.passage} onChange={e=>setNc({...nc,passage:parseInt(e.target.value)||0})}/>
-        <label className="lbl">Last passage date (D0)</label><input className="inp" type="date" value={nc.passageDate} onChange={e=>setNc({...nc,passageDate:e.target.value})}/>
-        <button className="btn" style={{background:"#8b5cf6",width:"100%",padding:10}} onClick={()=>{if(!nc.name||!nc.passageDate)return;setCells([...cells,{...nc,id:Date.now()}]);setModal(null);}}>Add</button>
-      </Modal>}
-
-      {modal==="org"&&<Modal title="➕ Add Organoid Batch" onClose={()=>setModal(null)}>
-        <label className="lbl">Batch name</label><input className="inp" value={no.name} onChange={e=>setNo({...no,name:e.target.value})} placeholder="e.g. Batch-A"/>
-        <label className="lbl">Protocol</label><select className="inp" value={no.type} onChange={e=>setNo({...no,type:e.target.value})}><option value="normal">Normal</option><option value="vasc">Vascularized</option></select>
-        <label className="lbl">Format</label><select className="inp" value={no.format} onChange={e=>setNo({...no,format:e.target.value})}><option value="gel">Gel</option><option value="normal">Normal</option><option value="chip">Chip</option></select>
-        <label className="lbl">Seeding date (D-3)</label><input className="inp" type="date" value={no.seedDate} onChange={e=>setNo({...no,seedDate:e.target.value})}/>
-        {no.seedDate&&<div style={{background:"#eff6ff",borderRadius:8,padding:"7px 11px",fontSize:12,color:"#1d4ed8",marginBottom:10}}>D0 (CHIR): {addDays(no.seedDate,3)}</div>}
-        <button className="btn" style={{background:"#0891b2",width:"100%",padding:10}} onClick={()=>{if(!no.name||!no.seedDate)return;setOrgs([...orgs,{...no,id:Date.now()}]);setModal(null);}}>Add</button>
-      </Modal>}
-
-      {modal==="task"&&<Modal title="➕ Add Schedule Item" onClose={()=>setModal(null)}>
-        <label className="lbl">Type</label><select className="inp" value={nt.type} onChange={e=>setNt({...nt,type:e.target.value})}>{TASK_TYPES.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}</select>
-        <label className="lbl">Title</label><input className="inp" value={nt.title} onChange={e=>setNt({...nt,title:e.target.value})} placeholder="e.g. CS101 Lecture"/>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-          <div><label className="lbl">Start time</label><input className="inp" type="time" value={nt.time} onChange={e=>setNt({...nt,time:e.target.value})}/></div>
-          <div><label className="lbl">Duration (min)</label><input className="inp" type="number" value={nt.duration} onChange={e=>setNt({...nt,duration:parseInt(e.target.value)||60})}/></div>
         </div>
-        <label className="lbl">Notes</label><input className="inp" value={nt.detail} onChange={e=>setNt({...nt,detail:e.target.value})} placeholder="Location, link..."/>
+      </div>
+
+      {/* MODALS */}
+      {modal==="task"&&<Modal title="➕ Add Schedule Item" onClose={()=>setModal(null)}>
+        <div className="lbl">Type</div><select className="inp" value={nt.type} onChange={e=>setNt({...nt,type:e.target.value})}>{TTYPES.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}</select>
+        <div className="lbl">Title</div><input className="inp" value={nt.title} onChange={e=>setNt({...nt,title:e.target.value})} placeholder="e.g. CS101 Lecture"/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}><div><div className="lbl">Start time</div><input className="inp" type="time" value={nt.time} onChange={e=>setNt({...nt,time:e.target.value})}/></div><div><div className="lbl">Duration (min)</div><input className="inp" type="number" value={nt.duration} onChange={e=>setNt({...nt,duration:parseInt(e.target.value)||60})}/></div></div>
+        <div className="lbl">Notes</div><input className="inp" value={nt.detail} onChange={e=>setNt({...nt,detail:e.target.value})} placeholder="Location, link..."/>
         <button className="btn" style={{background:"#6366f1",width:"100%",padding:10}} onClick={()=>{if(!nt.title)return;setPtasks({...ptasks,[date]:[...(ptasks[date]||[]),{...nt,id:Date.now()}]});setModal(null);}}>Add</button>
       </Modal>}
-
-      {modal==="event"&&<Modal title="➕ Add Deadline / Event" onClose={()=>setModal(null)}>
-        <label className="lbl">Category</label><select className="inp" value={ne.cat} onChange={e=>setNe({...ne,cat:e.target.value})}>{EVENT_CATS.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}</select>
-        <label className="lbl">Title</label><input className="inp" value={ne.title} onChange={e=>setNe({...ne,title:e.target.value})} placeholder="e.g. Submit AHA Poster Abstract"/>
-        <label className="lbl">Deadline</label><input className="inp" type="date" value={ne.deadline} onChange={e=>setNe({...ne,deadline:e.target.value})}/>
-        <label className="lbl">Remind me _ days before</label><input className="inp" type="number" value={ne.reminderDays} onChange={e=>setNe({...ne,reminderDays:parseInt(e.target.value)||7})}/>
-        <label className="lbl">Notes</label><input className="inp" value={ne.detail} onChange={e=>setNe({...ne,detail:e.target.value})} placeholder="Conference name, link..."/>
+      {modal==="event"&&<Modal title="➕ Add Deadline" onClose={()=>setModal(null)}>
+        <div className="lbl">Category</div><select className="inp" value={ne.cat} onChange={e=>setNe({...ne,cat:e.target.value})}>{ECATS.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}</select>
+        <div className="lbl">Title</div><input className="inp" value={ne.title} onChange={e=>setNe({...ne,title:e.target.value})} placeholder="e.g. Submit AHA Poster"/>
+        <div className="lbl">Deadline</div><input className="inp" type="date" value={ne.deadline} onChange={e=>setNe({...ne,deadline:e.target.value})}/>
+        <div className="lbl">Remind me _ days before</div><input className="inp" type="number" value={ne.reminderDays} onChange={e=>setNe({...ne,reminderDays:parseInt(e.target.value)||7})}/>
+        <div className="lbl">Notes</div><input className="inp" value={ne.detail} onChange={e=>setNe({...ne,detail:e.target.value})} placeholder="Conference, link..."/>
         <button className="btn" style={{background:"#1e3a5f",width:"100%",padding:10}} onClick={()=>{if(!ne.title||!ne.deadline)return;setEvents([...events,{...ne,id:Date.now(),archived:false}]);setModal(null);}}>Add</button>
       </Modal>}
-
-      {(modal==="meet_ai"||modal==="meet_card")&&<Modal title="➕ Add Meeting Record" onClose={()=>setModal(null)}>
-        <label className="lbl">Meeting date</label>
-        <input className="inp" type="date" value={nm.date} onChange={e=>setNm({date:e.target.value})}/>
-        <button className="btn" style={{background:modal==="meet_ai"?"#6366f1":"#0891b2",width:"100%",padding:10}} onClick={()=>{
-          if(!nm.date)return;
-          const entry={id:Date.now(),date:nm.date,report:"",feedback:""};
-          if(modal==="meet_ai")setAiMeetings([...aiMeetings,entry]);
-          else setCardMeetings([...cardMeetings,entry]);
-          setModal(null);
-        }}>Add</button>
+      {modal==="cell"&&<Modal title="➕ Add Cell Line" onClose={()=>setModal(null)}>
+        <div className="lbl">Name</div><input className="inp" value={nc.name} onChange={e=>setNc({...nc,name:e.target.value})} placeholder="e.g. iPSC-Line1"/>
+        <div className="lbl">Passage (P)</div><input className="inp" type="number" value={nc.passage} onChange={e=>setNc({...nc,passage:parseInt(e.target.value)||0})}/>
+        <div className="lbl">Last passage date (D0)</div><input className="inp" type="date" value={nc.passageDate} onChange={e=>setNc({...nc,passageDate:e.target.value})}/>
+        <button className="btn" style={{background:"#8b5cf6",width:"100%",padding:10}} onClick={()=>{if(!nc.name||!nc.passageDate)return;setCells([...cells,{...nc,id:Date.now()}]);setModal(null);}}>Add</button>
       </Modal>}
-        <label className="lbl">Protocol name</label><input className="inp" value={np.title} onChange={e=>setNp({...np,title:e.target.value})} placeholder="e.g. iPSC Cardioid Differentiation"/>
-        <label className="lbl">Category (optional)</label><input className="inp" value={np.category} onChange={e=>setNp({...np,category:e.target.value})} placeholder="e.g. Wet Lab / Imaging / Staining"/>
-        <button className="btn" style={{background:"#1e3a5f",width:"100%",padding:10}} onClick={()=>{if(!np.title)return;setProtocols([...protocols,{...np,id:Date.now(),content:""}]);setModal(null);}}>Add Protocol</button>
+      {modal==="org"&&<Modal title="➕ Add Organoid Batch" onClose={()=>setModal(null)}>
+        <div className="lbl">Batch name</div><input className="inp" value={no.name} onChange={e=>setNo({...no,name:e.target.value})} placeholder="e.g. Batch-A"/>
+        <div className="lbl">Protocol</div><select className="inp" value={no.type} onChange={e=>setNo({...no,type:e.target.value})}><option value="normal">Normal</option><option value="vasc">Vascularized</option></select>
+        <div className="lbl">Format</div><select className="inp" value={no.format} onChange={e=>setNo({...no,format:e.target.value})}><option value="gel">Gel</option><option value="normal">Normal</option><option value="chip">Chip</option></select>
+        <div className="lbl">Seeding date (D-3)</div><input className="inp" type="date" value={no.seedDate} onChange={e=>setNo({...no,seedDate:e.target.value})}/>
+        {no.seedDate&&<div style={{background:"#eff6ff",borderRadius:8,padding:"6px 10px",fontSize:12,color:"#1d4ed8",marginBottom:10}}>D0 (CHIR): {addDays(no.seedDate,3)}</div>}
+        <button className="btn" style={{background:"#0891b2",width:"100%",padding:10}} onClick={()=>{if(!no.name||!no.seedDate)return;setOrgs([...orgs,{...no,id:Date.now()}]);setModal(null);}}>Add</button>
       </Modal>}
-
+      {modal==="prot"&&<Modal title="➕ Add Protocol" onClose={()=>setModal(null)}>
+        <div className="lbl">Protocol name</div><input className="inp" value={np.title} onChange={e=>setNp({...np,title:e.target.value})} placeholder="e.g. iPSC Cardioid Differentiation"/>
+        <div className="lbl">Category (optional)</div><input className="inp" value={np.category} onChange={e=>setNp({...np,category:e.target.value})} placeholder="e.g. Wet Lab / Imaging"/>
+        <button className="btn" style={{background:"#1e3a5f",width:"100%",padding:10}} onClick={()=>{if(!np.title)return;setProtocols([...protocols,{...np,id:Date.now(),content:""}]);setModal(null);}}>Add</button>
+      </Modal>}
       {modal==="lib"&&<Modal title="➕ Add Library Note" onClose={()=>setModal(null)}>
-        <label className="lbl">Title</label><input className="inp" value={nl.title} onChange={e=>setNl({...nl,title:e.target.value})} placeholder="e.g. Paper summary: Nature 2024"/>
-        <label className="lbl">Tag (optional)</label><input className="inp" value={nl.tag} onChange={e=>setNl({...nl,tag:e.target.value})} placeholder="e.g. Paper / Lecture / Idea"/>
-        <button className="btn" style={{background:"#8b5cf6",width:"100%",padding:10}} onClick={()=>{if(!nl.title)return;setLibNotes([...libNotes,{...nl,id:Date.now(),date:today(),content:""}]);setModal(null);}}>Add Note</button>
+        <div className="lbl">Title</div><input className="inp" value={nl.title} onChange={e=>setNl({...nl,title:e.target.value})} placeholder="e.g. Paper summary: Nature 2024"/>
+        <div className="lbl">Tag (optional)</div><input className="inp" value={nl.tag} onChange={e=>setNl({...nl,tag:e.target.value})} placeholder="e.g. Paper / Lecture / Idea"/>
+        <button className="btn" style={{background:"#8b5cf6",width:"100%",padding:10}} onClick={()=>{if(!nl.title)return;setLibNotes([...libNotes,{...nl,id:Date.now(),date:todayStr(),content:""}]);setModal(null);}}>Add</button>
       </Modal>}
-
     </div>
   );
 }

@@ -280,44 +280,115 @@ function FridayTab({notes,setNotes,meeting,setMeeting,curDate}){
 /* ── Generic Lab Record Tab ── */
 function LabRecordTab({storeKey,color,icon,title,fields,notes,setNotes}){
   const [adding,setAdding]=useState(false);
-  const [newDate,setNewDate]=useState(todayStr());
   const [openId,setOpenId]=useState(null);
+  const [form,setForm]=useState({date:todayStr()});
   const setNote=(k,v)=>setNotes(n=>({...n,[k]:v}));
-  const prefix=`${storeKey}_rec_`;
-  const entries=Object.keys(notes).filter(k=>k.startsWith(prefix+"date_")).map(k=>({date:k.replace(prefix+"date_","")})).sort((a,b)=>b.date.localeCompare(a.date));
-  const addEntry=()=>{if(!newDate)return;setNote(`${prefix}date_${newDate}`,newDate);setAdding(false);setOpenId(newDate);};
-  const delEntry=d=>{setNotes(n=>{const c={...n};[`${prefix}date_${d}`,...fields.map(f=>`${prefix}${f.key}_${d}`)].forEach(k=>delete c[k]);return c;});if(openId===d)setOpenId(null);};
+  const prefix=`${storeKey}_meta_`;
+
+  // Each record stored as JSON under a unique key
+  const entries=Object.keys(notes)
+    .filter(k=>k.startsWith(prefix))
+    .map(k=>{try{return JSON.parse(notes[k]);}catch{return null;}})
+    .filter(Boolean)
+    .sort((a,b)=>b.date.localeCompare(a.date)||(b.id>a.id?1:-1));
+
+  const initForm=()=>{
+    const f={date:todayStr()};
+    fields.forEach(fl=>f[fl.key]="");
+    setForm(f);
+  };
+
+  const saveEntry=()=>{
+    if(!form.date)return;
+    const id=form.date+"_"+Date.now();
+    setNote(`${prefix}${id}`,JSON.stringify({...form,id}));
+    setAdding(false);setOpenId(id);
+    initForm();
+  };
+
+  const delEntry=id=>{
+    setNotes(n=>{const c={...n};delete c[`${prefix}${id}`];delete c[`${storeKey}_notes_${id}`];return c;});
+    if(openId===id)setOpenId(null);
+  };
+
+  const updateField=(id,key,val)=>{
+    const k=`${prefix}${id}`;
+    try{const rec=JSON.parse(notes[k]||"{}");setNote(k,JSON.stringify({...rec,[key]:val}));}catch{}
+  };
+
+  useEffect(()=>initForm(),[]);
+
   return(<>
     <div className="card">
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}><span className="tag" style={{background:color}}>{icon} {title}</span><span style={{fontSize:13,color:"#94a3b8"}}>{entries.length} record(s)</span></div>
-        <button className="btn" style={{background:color,fontSize:12,padding:"5px 11px"}} onClick={()=>setAdding(!adding)}>+ Add Record</button>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span className="tag" style={{background:color}}>{icon} {title}</span>
+          <span style={{fontSize:13,color:"#94a3b8"}}>{entries.length} record(s)</span>
+        </div>
+        <button className="btn" style={{background:color,fontSize:12,padding:"5px 11px"}} onClick={()=>{initForm();setAdding(!adding);}}>+ Add Record</button>
       </div>
-      {adding&&<div style={{marginTop:12,padding:12,background:"#f8fafc",borderRadius:9,border:"1px solid #e2e8f0"}}>
+      {adding&&<div style={{marginTop:12,padding:14,background:"#f8fafc",borderRadius:9,border:"1px solid #e2e8f0"}}>
         <div className="lbl">Date</div>
-        <div style={{display:"flex",gap:8}}><input className="inp" type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{marginBottom:0,flex:1}}/><button className="btn" style={{background:color}} onClick={addEntry}>Add</button><button className="btn" style={{background:"#94a3b8"}} onClick={()=>setAdding(false)}>Cancel</button></div>
+        <input className="inp" type="date" value={form.date} onChange={e=>setForm({...form,date:e.target.value})}/>
+        {fields.map(f=>(
+          <div key={f.key}>
+            <div className="lbl">{f.label}</div>
+            {f.options
+              ? <select className="inp" value={form[f.key]||""} onChange={e=>setForm({...form,[f.key]:e.target.value})}>
+                  <option value="">— select —</option>
+                  {f.options.map(o=><option key={o} value={o}>{o}</option>)}
+                </select>
+              : <input className="inp" value={form[f.key]||""} onChange={e=>setForm({...form,[f.key]:e.target.value})} placeholder={f.placeholder}/>
+            }
+          </div>
+        ))}
+        <div style={{display:"flex",gap:8,marginTop:4}}>
+          <button className="btn" style={{background:color,flex:1,padding:9}} onClick={saveEntry}>Save Record</button>
+          <button className="btn" style={{background:"#94a3b8"}} onClick={()=>setAdding(false)}>Cancel</button>
+        </div>
       </div>}
     </div>
+
     {entries.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}><div style={{fontSize:28,marginBottom:6}}>{icon}</div>No records yet — click "+ Add Record"</div>}
-    {entries.map(e=>{const isOpen=openId===e.date;return(
-      <div key={e.date} className="card" style={{padding:0,overflow:"hidden"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setOpenId(isOpen?null:e.date)}>
-          <div><span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.date}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{parseD(e.date).toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span></div>
-          <div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.date);}}>Delete</button><span style={{color:color,fontWeight:700}}>{isOpen?"▲":"▼"}</span></div>
-        </div>
-        {isOpen&&<div style={{padding:14}}>
-          {fields.map(f=>(
-            <div key={f.key} style={{marginBottom:12}}>
-              <div className="lbl">{f.label}</div>
-              <input className="inp" style={{marginBottom:0}} value={notes[`${prefix}${f.key}_${e.date}`]||""} onChange={ev=>setNote(`${prefix}${f.key}_${e.date}`,ev.target.value)} placeholder={f.placeholder}/>
+
+    {entries.map(e=>{
+      const isOpen=openId===e.id;
+      const summary=fields.filter(f=>e[f.key]).slice(0,3).map(f=>e[f.key]).join(" · ");
+      return(
+        <div key={e.id} className="card" style={{padding:0,overflow:"hidden"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}}
+            onClick={()=>setOpenId(isOpen?null:e.id)}>
+            <div>
+              <span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.date}</span>
+              {e[fields[0]?.key]&&<span style={{marginLeft:8,fontSize:12,color:"#475569",fontWeight:600}}>{e[fields[0].key]}</span>}
+              {summary&&<div style={{fontSize:11,color:"#94a3b8",marginTop:2}}>{summary}</div>}
             </div>
-          ))}
-          <div style={{marginTop:4}}>
-            <div className="lbl">Additional notes</div>
-            <RTE value={notes[`${prefix}notes_${e.date}`]||""} onChange={v=>setNote(`${prefix}notes_${e.date}`,v)} placeholder="Any additional observations, images, issues..." minH={120}/>
+            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+              <button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.id);}}>Delete</button>
+              <span style={{color:color,fontWeight:700}}>{isOpen?"▲":"▼"}</span>
+            </div>
           </div>
-        </div>}
-      </div>);})}
+          {isOpen&&<div style={{padding:14}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+              {fields.map(f=>(
+                <div key={f.key} style={{gridColumn:f.wide?"1/-1":"auto"}}>
+                  <div className="lbl">{f.label}</div>
+                  {f.options
+                    ? <select className="inp" style={{marginBottom:0}} value={e[f.key]||""} onChange={ev=>updateField(e.id,f.key,ev.target.value)}>
+                        <option value="">— select —</option>
+                        {f.options.map(o=><option key={o} value={o}>{o}</option>)}
+                      </select>
+                    : <input className="inp" style={{marginBottom:0}} value={e[f.key]||""} onChange={ev=>updateField(e.id,f.key,ev.target.value)} placeholder={f.placeholder}/>
+                  }
+                </div>
+              ))}
+            </div>
+            <div className="lbl">Additional notes</div>
+            <RTE value={notes[`${storeKey}_notes_${e.id}`]||""} onChange={v=>setNote(`${storeKey}_notes_${e.id}`,v)} placeholder="Observations, images, issues..." minH={120}/>
+          </div>}
+        </div>
+      );
+    })}
   </>);
 }
 
@@ -683,13 +754,17 @@ function App(){
           {tab==="morphology"&&<LabRecordTab
             storeKey="morphology" color="#f59e0b" icon="🔭" title="Morphology Records"
             fields={[
-              {key:"sample",label:"Sample / Day",placeholder:"e.g. Batch-A D10"},
-              {key:"instrument",label:"Instrument",placeholder:"e.g. EVOS M7000, brightfield"},
-              {key:"magnification",label:"Magnification",placeholder:"e.g. 4×, 10×"},
-              {key:"size",label:"Size / diameter (μm)",placeholder:"e.g. ~500μm avg"},
-              {key:"shape",label:"Shape & compactness",placeholder:"e.g. round, compact core, irregular periphery"},
-              {key:"beating",label:"Beating observed?",placeholder:"e.g. Yes, spontaneous, ~60 bpm"},
-              {key:"observations",label:"Other observations",placeholder:"e.g. Clear lumen, layered structure..."},
+              {key:"sample",label:"Sample / Batch / Day",placeholder:"e.g. Batch-A D10"},
+              {key:"instrument",label:"Instrument",options:["EVOS M7000","Zeiss Axiovert","Leica DMi8","Nikon Ti2","Opera Phenix","Other"]},
+              {key:"magnification",label:"Magnification",options:["2×","4×","10×","20×","40×"]},
+              {key:"size",label:"Diameter / Size",options:["<200 μm","200–400 μm","400–600 μm","600–800 μm",">800 μm","variable"]},
+              {key:"shape",label:"Shape",options:["Round","Oval","Irregular","Fragmented","Elongated"]},
+              {key:"compactness",label:"Compactness",options:["Compact","Semi-compact","Loose","Necrotic core","Hollow"]},
+              {key:"surface",label:"Surface texture",options:["Smooth","Rough","Budding","Lobulated"]},
+              {key:"beating",label:"Beating observed?",options:["Yes — Regular","Yes — Irregular","Yes — Weak","No beating","Not assessed"]},
+              {key:"beating_rate",label:"Approximate beating rate",options:["<40 bpm","40–60 bpm","60–80 bpm","80–100 bpm",">100 bpm","Not assessed"]},
+              {key:"transparency",label:"Transparency",options:["Transparent","Semi-transparent","Opaque"]},
+              {key:"health",label:"Overall health assessment",options:["Excellent","Good","Fair","Poor","Dead"]},
             ]}
             notes={notes} setNotes={setNotes}
           />}
@@ -698,14 +773,17 @@ function App(){
           {tab==="motion"&&<LabRecordTab
             storeKey="motion_track" color="#3b82f6" icon="📹" title="Motion Tracking Records"
             fields={[
-              {key:"sample",label:"Sample / Day",placeholder:"e.g. Batch-A D14"},
-              {key:"setup",label:"Recording setup",placeholder:"e.g. 37°C stage, 5% CO2, 10× objective"},
-              {key:"fps",label:"Frame rate (fps)",placeholder:"e.g. 25 fps"},
-              {key:"duration",label:"Recording duration",placeholder:"e.g. 30 sec × 3 videos"},
-              {key:"software",label:"Tracking software",placeholder:"e.g. ImageJ, MUSCLEMOTION, custom Python"},
-              {key:"bpm",label:"Beating rate (bpm)",placeholder:"e.g. 55 ± 8 bpm"},
-              {key:"amplitude",label:"Contraction amplitude",placeholder:"e.g. peak displacement ~12μm"},
-              {key:"notes2",label:"Notes",placeholder:"e.g. Arrhythmic, irregular, drug treatment..."},
+              {key:"sample",label:"Sample / Batch / Day",placeholder:"e.g. Batch-A D14"},
+              {key:"instrument",label:"Microscope / system",options:["EVOS M7000","Zeiss Axiovert","Nikon Ti2","Leica DMi8","Custom rig","Other"]},
+              {key:"objective",label:"Objective",options:["4×","10×","20×","40×"]},
+              {key:"stage",label:"Stage conditions",options:["37°C + 5% CO₂","37°C only","Room temperature","Other"]},
+              {key:"fps",label:"Frame rate (fps)",options:["10","15","25","30","50","100","200"]},
+              {key:"duration",label:"Recording duration",options:["10 sec","30 sec","1 min","2 min","5 min","10 min"]},
+              {key:"n_videos",label:"Number of videos",options:["1","2","3","5","10",">10"]},
+              {key:"software",label:"Tracking software",options:["MUSCLEMOTION","ImageJ / Fiji","Python custom","MATLAB","CellProfiler","Other"]},
+              {key:"bpm",label:"Beating rate (bpm)",options:["<40 bpm","40–60 bpm","60–80 bpm","80–100 bpm",">100 bpm","Irregular","No beating"]},
+              {key:"regularity",label:"Rhythmicity",options:["Regular","Mostly regular","Irregular","Arrhythmic","Sporadic","No beating"]},
+              {key:"drug",label:"Drug treatment",options:["None","Isoproterenol","E-4031","Nifedipine","Blebbistatin","Other"]},
             ]}
             notes={notes} setNotes={setNotes}
           />}

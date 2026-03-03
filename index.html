@@ -64,17 +64,35 @@ const {useState,useEffect,useRef,useCallback}=React;
 const GIST_TOKEN="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";
 const GIST_FILE="phd-planner-data.json";
 
-async function gistLoad(){
+async function findOrLoadGist(){
+  // 1. Try known ID first
   const id=localStorage.getItem("gist_id");
-  if(!id)return null;
+  if(id){
+    try{
+      const r=await fetch(`https://api.github.com/gists/${id}`,{headers:{Authorization:`token ${GIST_TOKEN}`}});
+      if(r.ok){const d=await r.json();const c=d.files?.[GIST_FILE]?.content;if(c)return JSON.parse(c);}
+    }catch{}
+  }
+  // 2. Search all gists for our file
   try{
-    const r=await fetch(`https://api.github.com/gists/${id}`,{headers:{Authorization:`token ${GIST_TOKEN}`}});
-    if(!r.ok)return null;
-    const d=await r.json();
-    const c=d.files?.[GIST_FILE]?.content;
-    return c?JSON.parse(c):null;
-  }catch{return null;}
+    let page=1;
+    while(page<=5){
+      const r=await fetch(`https://api.github.com/gists?per_page=100&page=${page}`,{headers:{Authorization:`token ${GIST_TOKEN}`}});
+      if(!r.ok)break;
+      const list=await r.json();
+      if(!list.length)break;
+      const found=list.find(g=>g.files?.[GIST_FILE]);
+      if(found){
+        localStorage.setItem("gist_id",found.id);
+        const r2=await fetch(`https://api.github.com/gists/${found.id}`,{headers:{Authorization:`token ${GIST_TOKEN}`}});
+        if(r2.ok){const d=await r2.json();const c=d.files?.[GIST_FILE]?.content;if(c)return JSON.parse(c);}
+      }
+      page++;
+    }
+  }catch{}
+  return null;
 }
+async function gistLoad(){return findOrLoadGist();}
 
 async function gistSave(data){
   const id=localStorage.getItem("gist_id");
@@ -259,6 +277,110 @@ function FridayTab({notes,setNotes,meeting,setMeeting,curDate}){
   </>);
 }
 
+/* ── Generic Lab Record Tab ── */
+function LabRecordTab({storeKey,color,icon,title,fields,notes,setNotes}){
+  const [adding,setAdding]=useState(false);
+  const [newDate,setNewDate]=useState(todayStr());
+  const [openId,setOpenId]=useState(null);
+  const setNote=(k,v)=>setNotes(n=>({...n,[k]:v}));
+  const prefix=`${storeKey}_rec_`;
+  const entries=Object.keys(notes).filter(k=>k.startsWith(prefix+"date_")).map(k=>({date:k.replace(prefix+"date_","")})).sort((a,b)=>b.date.localeCompare(a.date));
+  const addEntry=()=>{if(!newDate)return;setNote(`${prefix}date_${newDate}`,newDate);setAdding(false);setOpenId(newDate);};
+  const delEntry=d=>{setNotes(n=>{const c={...n};[`${prefix}date_${d}`,...fields.map(f=>`${prefix}${f.key}_${d}`)].forEach(k=>delete c[k]);return c;});if(openId===d)setOpenId(null);};
+  return(<>
+    <div className="card">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}><span className="tag" style={{background:color}}>{icon} {title}</span><span style={{fontSize:13,color:"#94a3b8"}}>{entries.length} record(s)</span></div>
+        <button className="btn" style={{background:color,fontSize:12,padding:"5px 11px"}} onClick={()=>setAdding(!adding)}>+ Add Record</button>
+      </div>
+      {adding&&<div style={{marginTop:12,padding:12,background:"#f8fafc",borderRadius:9,border:"1px solid #e2e8f0"}}>
+        <div className="lbl">Date</div>
+        <div style={{display:"flex",gap:8}}><input className="inp" type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={{marginBottom:0,flex:1}}/><button className="btn" style={{background:color}} onClick={addEntry}>Add</button><button className="btn" style={{background:"#94a3b8"}} onClick={()=>setAdding(false)}>Cancel</button></div>
+      </div>}
+    </div>
+    {entries.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}><div style={{fontSize:28,marginBottom:6}}>{icon}</div>No records yet — click "+ Add Record"</div>}
+    {entries.map(e=>{const isOpen=openId===e.date;return(
+      <div key={e.date} className="card" style={{padding:0,overflow:"hidden"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setOpenId(isOpen?null:e.date)}>
+          <div><span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.date}</span><span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{parseD(e.date).toLocaleDateString("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</span></div>
+          <div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.date);}}>Delete</button><span style={{color:color,fontWeight:700}}>{isOpen?"▲":"▼"}</span></div>
+        </div>
+        {isOpen&&<div style={{padding:14}}>
+          {fields.map(f=>(
+            <div key={f.key} style={{marginBottom:12}}>
+              <div className="lbl">{f.label}</div>
+              <input className="inp" style={{marginBottom:0}} value={notes[`${prefix}${f.key}_${e.date}`]||""} onChange={ev=>setNote(`${prefix}${f.key}_${e.date}`,ev.target.value)} placeholder={f.placeholder}/>
+            </div>
+          ))}
+          <div style={{marginTop:4}}>
+            <div className="lbl">Additional notes</div>
+            <RTE value={notes[`${prefix}notes_${e.date}`]||""} onChange={v=>setNote(`${prefix}notes_${e.date}`,v)} placeholder="Any additional observations, images, issues..." minH={120}/>
+          </div>
+        </div>}
+      </div>);})}
+  </>);
+}
+
+/* ── Motion Analysis Tab ── */
+function MotionAnalysisTab({notes,setNotes}){
+  const [adding,setAdding]=useState(false);
+  const [openId,setOpenId]=useState(null);
+  const [form,setForm]=useState({date:todayStr(),sample:"",software:"",bpm:"",amplitude:"",regularity:"",cv:"",drugged:"No",drugDetail:""});
+  const setNote=(k,v)=>setNotes(n=>({...n,[k]:v}));
+  const prefix="motion_analysis_";
+  const entries=Object.keys(notes).filter(k=>k.startsWith(prefix+"meta_")).map(k=>{try{return JSON.parse(notes[k]);}catch{return null;}}).filter(Boolean).sort((a,b)=>b.date.localeCompare(a.date));
+  const saveEntry=()=>{
+    if(!form.sample||!form.date)return;
+    const id=form.date+"_"+Date.now();
+    setNote(`${prefix}meta_${id}`,JSON.stringify({...form,id}));
+    setAdding(false);setOpenId(id);
+    setForm({date:todayStr(),sample:"",software:"",bpm:"",amplitude:"",regularity:"",cv:"",drugged:"No",drugDetail:""});
+  };
+  const delEntry=id=>{setNotes(n=>{const c={...n};delete c[`${prefix}meta_${id}`];delete c[`${prefix}notes_${id}`];return c;});if(openId===id)setOpenId(null);};
+  return(<>
+    <div className="card">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}><span className="tag" style={{background:"#3b82f6"}}>📊 Motion Analysis</span><span style={{fontSize:13,color:"#94a3b8"}}>{entries.length} analysis run(s)</span></div>
+        <button className="btn" style={{background:"#3b82f6",fontSize:12,padding:"5px 11px"}} onClick={()=>setAdding(!adding)}>+ Add Analysis</button>
+      </div>
+      {adding&&<div style={{marginTop:12,padding:14,background:"#f8fafc",borderRadius:9,border:"1px solid #e2e8f0"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div><div className="lbl">Date</div><input className="inp" type="date" value={form.date} onChange={e=>setForm({...form,date:e.target.value})}/></div>
+          <div><div className="lbl">Sample / Batch / Day</div><input className="inp" value={form.sample} onChange={e=>setForm({...form,sample:e.target.value})} placeholder="e.g. Batch-A D14"/></div>
+          <div><div className="lbl">Analysis software</div><input className="inp" value={form.software} onChange={e=>setForm({...form,software:e.target.value})} placeholder="e.g. MUSCLEMOTION, Python"/></div>
+          <div><div className="lbl">Beating rate (bpm)</div><input className="inp" value={form.bpm} onChange={e=>setForm({...form,bpm:e.target.value})} placeholder="e.g. 58 ± 5"/></div>
+          <div><div className="lbl">Contraction amplitude</div><input className="inp" value={form.amplitude} onChange={e=>setForm({...form,amplitude:e.target.value})} placeholder="e.g. 0.15 AU avg"/></div>
+          <div><div className="lbl">Regularity / Rhythmicity</div><input className="inp" value={form.regularity} onChange={e=>setForm({...form,regularity:e.target.value})} placeholder="e.g. Regular, occasional PVC"/></div>
+          <div><div className="lbl">CV of beat interval (%)</div><input className="inp" value={form.cv} onChange={e=>setForm({...form,cv:e.target.value})} placeholder="e.g. 8.2%"/></div>
+          <div><div className="lbl">Drug treatment?</div><select className="inp" style={{marginBottom:0}} value={form.drugged} onChange={e=>setForm({...form,drugged:e.target.value})}><option>No</option><option>Yes</option></select></div>
+        </div>
+        {form.drugged==="Yes"&&<div style={{marginTop:10}}><div className="lbl">Drug & concentration</div><input className="inp" value={form.drugDetail} onChange={e=>setForm({...form,drugDetail:e.target.value})} placeholder="e.g. Isoproterenol 1μM, E-4031 100nM"/></div>}
+        <div style={{display:"flex",gap:8,marginTop:10}}><button className="btn" style={{background:"#3b82f6",flex:1,padding:9}} onClick={saveEntry}>Save Analysis</button><button className="btn" style={{background:"#94a3b8"}} onClick={()=>setAdding(false)}>Cancel</button></div>
+      </div>}
+    </div>
+    {entries.length===0&&<div className="card" style={{textAlign:"center",color:"#94a3b8",padding:36}}><div style={{fontSize:28,marginBottom:6}}>📊</div>No analysis records yet</div>}
+    {entries.map(e=>{const isOpen=openId===e.id;return(
+      <div key={e.id} className="card" style={{padding:0,overflow:"hidden",borderLeft:"4px solid #3b82f6"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"#f8fafc",cursor:"pointer",borderBottom:isOpen?"1px solid #e2e8f0":"none"}} onClick={()=>setOpenId(isOpen?null:e.id)}>
+          <div>
+            <span style={{fontWeight:700,fontSize:14,color:"#1e3a5f"}}>{e.sample}</span>
+            <span style={{marginLeft:8,fontSize:12,color:"#94a3b8"}}>{e.date}</span>
+            {e.bpm&&<span style={{marginLeft:8,fontSize:12,background:"#eff6ff",color:"#1d4ed8",borderRadius:5,padding:"1px 7px"}}>{e.bpm} bpm</span>}
+            {e.drugged==="Yes"&&<span style={{marginLeft:6,fontSize:11,background:"#fdf4ff",color:"#9333ea",borderRadius:5,padding:"1px 7px"}}>💊 Drugged</span>}
+          </div>
+          <div style={{display:"flex",gap:6,alignItems:"center"}}><button className="btn" style={{background:"#ef4444",padding:"3px 9px",fontSize:12}} onClick={ev=>{ev.stopPropagation();delEntry(e.id);}}>Delete</button><span style={{color:"#3b82f6",fontWeight:700}}>{isOpen?"▲":"▼"}</span></div>
+        </div>
+        {isOpen&&<div style={{padding:14}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+            {[["Software",e.software],["Beating rate",e.bpm],["Amplitude",e.amplitude],["Regularity",e.regularity],["Beat CV",e.cv],["Drug",e.drugged==="Yes"?e.drugDetail:"None"]].map(([lbl,val])=>val?<div key={lbl} style={{background:"#f8fafc",borderRadius:8,padding:"8px 10px"}}><div style={{fontSize:11,color:"#94a3b8",fontWeight:600}}>{lbl}</div><div style={{fontSize:13,fontWeight:600,color:"#1e293b",marginTop:2}}>{val}</div></div>:null)}
+          </div>
+          <div className="lbl">Detailed notes / interpretation</div>
+          <RTE value={notes[`${prefix}notes_${e.id}`]||""} onChange={v=>setNote(`${prefix}notes_${e.id}`,v)} placeholder="Interpretation, comparison with baseline, figures, next steps..." minH={150}/>
+        </div>}
+      </div>);})}
+  </>);
+}
+
 /* ── NAV ── */
 const NAV=[
   {id:"planner",icon:"📋",label:"Daily Plan",sec:"MAIN"},
@@ -268,6 +390,12 @@ const NAV=[
   {id:"events",icon:"🎯",label:"Deadlines",sec:"TRACKING"},
   {id:"cells",icon:"🧫",label:"Cell Culture"},
   {id:"orgs",icon:"🫀",label:"Organoids"},
+  {id:"fix_section",icon:"🔬",label:"Fix & Section",sec:"WET LAB"},
+  {id:"staining",icon:"🎨",label:"Staining"},
+  {id:"rna",icon:"🧬",label:"RNA Extraction"},
+  {id:"morphology",icon:"🔭",label:"Morphology"},
+  {id:"motion",icon:"📹",label:"Motion Tracking"},
+  {id:"motion_analysis",icon:"📊",label:"Motion Analysis"},
   {id:"coding_tasks",icon:"💻",label:"Coding Tasks",sec:"CODING"},
   {id:"notes",icon:"📝",label:"Daily Notes",sec:"NOTES"},
   {id:"protocols",icon:"📂",label:"Protocols",sec:"LIBRARY"},
@@ -503,8 +631,87 @@ function App(){
                   {todayTask?<span style={{color:"#1d4ed8",fontWeight:700,fontSize:13}}>📋 Today: {todayTask}</span>:day>21?<span style={{color:"#16a34a",fontWeight:700,fontSize:13}}>✅ Complete</span>:day<-3?<span style={{color:"#94a3b8",fontSize:13}}>⏳ Starts in {-3-day}d</span>:<span style={{color:"#94a3b8",fontSize:13}}>No action (D{day})</span>}
                 </div>
                 {upcoming.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:7}}>{upcoming.map(u=><div key={u.day} className="pill"><span style={{color:"#94a3b8"}}>{u.date} </span><strong style={{color:tc}}>D{u.day}</strong>: {u.task}</div>)}</div>}
+                {/* D15/D21 fix reminder */}
+                {(day===15||day===21)&&<div style={{marginTop:8,padding:"7px 11px",borderRadius:8,background:"#fdf4ff",border:"1px solid #e9d5ff"}}><span style={{color:"#9333ea",fontWeight:700,fontSize:13}}>🧪 D{day} endpoint — Time to Fix! Record in Fix & Section tab.</span></div>}
+                {day>15&&day<21&&<div style={{marginTop:6,fontSize:11,color:"#94a3b8"}}>Next fix point: D21 ({21-day} days away)</div>}
               </div>);})}
           </>)}
+
+          {/* FIX & SECTION */}
+          {tab==="fix_section"&&<LabRecordTab
+            storeKey="fix_section" color="#9333ea" icon="🔬" title="Fix & Section Records"
+            fields={[
+              {key:"sample",label:"Sample / Organoid batch",placeholder:"e.g. Batch-A D21"},
+              {key:"fixative",label:"Fixative",placeholder:"e.g. 4% PFA, 2h RT"},
+              {key:"embedding",label:"Embedding",placeholder:"e.g. OCT, cryosection 10μm"},
+              {key:"thickness",label:"Section thickness (μm)",placeholder:"e.g. 10"},
+              {key:"storage",label:"Storage",placeholder:"e.g. -20°C slides"},
+            ]}
+            notes={notes} setNotes={setNotes}
+          />}
+
+          {/* STAINING */}
+          {tab==="staining"&&<LabRecordTab
+            storeKey="staining" color="#ec4899" icon="🎨" title="Staining Records"
+            fields={[
+              {key:"sample",label:"Sample",placeholder:"e.g. Batch-A D21 section"},
+              {key:"protocol",label:"Staining protocol",placeholder:"e.g. IF, IHC, H&E"},
+              {key:"antibodies",label:"Primary antibodies",placeholder:"e.g. anti-cTnT 1:200, anti-CD31 1:100"},
+              {key:"secondary",label:"Secondary antibodies / dyes",placeholder:"e.g. Alexa 488 donkey anti-mouse 1:500"},
+              {key:"imaging",label:"Imaging system",placeholder:"e.g. Zeiss LSM 980 confocal"},
+              {key:"result",label:"Result / observations",placeholder:"e.g. Good signal, background low..."},
+            ]}
+            notes={notes} setNotes={setNotes}
+          />}
+
+          {/* RNA EXTRACTION */}
+          {tab==="rna"&&<LabRecordTab
+            storeKey="rna_extract" color="#10b981" icon="🧬" title="RNA Extraction Records"
+            fields={[
+              {key:"sample",label:"Sample",placeholder:"e.g. Batch-A D15 organoids"},
+              {key:"method",label:"Method / Kit",placeholder:"e.g. Qiagen RNeasy, TRIzol"},
+              {key:"conc",label:"Concentration (ng/μL)",placeholder:"e.g. 450"},
+              {key:"ratio",label:"260/280 ratio",placeholder:"e.g. 2.05"},
+              {key:"volume",label:"Elution volume (μL)",placeholder:"e.g. 30"},
+              {key:"storage",label:"Storage",placeholder:"e.g. -80°C, aliquot 5μL"},
+              {key:"downstream",label:"Downstream use",placeholder:"e.g. bulk RNA-seq, RT-qPCR"},
+            ]}
+            notes={notes} setNotes={setNotes}
+          />}
+
+          {/* MORPHOLOGY */}
+          {tab==="morphology"&&<LabRecordTab
+            storeKey="morphology" color="#f59e0b" icon="🔭" title="Morphology Records"
+            fields={[
+              {key:"sample",label:"Sample / Day",placeholder:"e.g. Batch-A D10"},
+              {key:"instrument",label:"Instrument",placeholder:"e.g. EVOS M7000, brightfield"},
+              {key:"magnification",label:"Magnification",placeholder:"e.g. 4×, 10×"},
+              {key:"size",label:"Size / diameter (μm)",placeholder:"e.g. ~500μm avg"},
+              {key:"shape",label:"Shape & compactness",placeholder:"e.g. round, compact core, irregular periphery"},
+              {key:"beating",label:"Beating observed?",placeholder:"e.g. Yes, spontaneous, ~60 bpm"},
+              {key:"observations",label:"Other observations",placeholder:"e.g. Clear lumen, layered structure..."},
+            ]}
+            notes={notes} setNotes={setNotes}
+          />}
+
+          {/* MOTION TRACKING */}
+          {tab==="motion"&&<LabRecordTab
+            storeKey="motion_track" color="#3b82f6" icon="📹" title="Motion Tracking Records"
+            fields={[
+              {key:"sample",label:"Sample / Day",placeholder:"e.g. Batch-A D14"},
+              {key:"setup",label:"Recording setup",placeholder:"e.g. 37°C stage, 5% CO2, 10× objective"},
+              {key:"fps",label:"Frame rate (fps)",placeholder:"e.g. 25 fps"},
+              {key:"duration",label:"Recording duration",placeholder:"e.g. 30 sec × 3 videos"},
+              {key:"software",label:"Tracking software",placeholder:"e.g. ImageJ, MUSCLEMOTION, custom Python"},
+              {key:"bpm",label:"Beating rate (bpm)",placeholder:"e.g. 55 ± 8 bpm"},
+              {key:"amplitude",label:"Contraction amplitude",placeholder:"e.g. peak displacement ~12μm"},
+              {key:"notes2",label:"Notes",placeholder:"e.g. Arrhythmic, irregular, drug treatment..."},
+            ]}
+            notes={notes} setNotes={setNotes}
+          />}
+
+          {/* MOTION ANALYSIS */}
+          {tab==="motion_analysis"&&<MotionAnalysisTab notes={notes} setNotes={setNotes}/>}
 
           {/* CODING TASKS */}
           {tab==="coding_tasks"&&(<>
